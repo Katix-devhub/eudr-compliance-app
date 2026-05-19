@@ -52,24 +52,28 @@ app.post("/api/docusign/create-envelope", async (req, res) => {
 });
 
 // --- Middleware for Production / Dev ---
-if (process.env.NODE_ENV === "production") {
-  const distPath = path.join(process.cwd(), "dist");
-  app.use(express.static(distPath));
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(distPath, "index.html"));
-  });
-} else {
-  // Vite middleware for development
-  (async () => {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
+const isNetlify = process.env.NETLIFY || process.env.CONTEXT === "production";
+
+if (!isNetlify) {
+  if (process.env.NODE_ENV === "production") {
+    const distPath = path.join(process.cwd(), "dist");
+    app.use(express.static(distPath));
+    app.get("*", (req, res) => {
+      res.sendFile(path.join(distPath, "index.html"));
     });
-    app.use(vite.middlewares);
-    app.listen(PORT, "0.0.0.0", () => {
-      console.log(`Server running on http://localhost:${PORT}`);
-    });
-  })();
+  } else {
+    // Vite middleware for development
+    (async () => {
+      const vite = await createViteServer({
+        server: { middlewareMode: true },
+        appType: "spa",
+      });
+      app.use(vite.middlewares);
+      app.listen(PORT, "0.0.0.0", () => {
+        console.log(`Server running on http://localhost:${PORT}`);
+      });
+    })();
+  }
 }
 
 export default app;
