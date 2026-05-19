@@ -1,0 +1,71 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(data) {
+      return isSignedIn() && data.userId == request.auth.uid;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Supplier Validation ---
+    function isValidSupplier(data) {
+      return data.name is string && data.name.size() <= 200
+          && data.country is string && data.country.size() <= 100
+          && data.product is string && data.product.size() <= 100
+          && data.userId == request.auth.uid
+          && data.ref is string && data.ref.size() <= 64
+          && data.status in ['ok', 'pending', 'alert', 'new']
+          && (data.get('lat', '') is string && data.get('lat', '').size() <= 50)
+          && (data.get('lng', '') is string && data.get('lng', '').size() <= 50)
+          && (data.get('risk', 'standard') in ['high', 'standard', 'low'])
+          && (data.get('type', 'individual') in ['individual', 'cooperative']);
+    }
+
+    // --- Collection: Suppliers ---
+    match /suppliers/{supplierId} {
+      allow get: if isOwner(existing());
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      allow create: if isSignedIn() 
+                    && isValidId(supplierId)
+                    && isValidSupplier(incoming())
+                    && incoming().keys().hasAll(['name', 'country', 'product', 'userId', 'ref', 'status', 'createdAt', 'updatedAt'])
+                    && incoming().createdAt == request.time
+                    && incoming().updatedAt == request.time;
+
+      allow update: if isOwner(existing())
+                    && isValidSupplier(incoming())
+                    && incoming().userId == existing().userId
+                    && incoming().ref == existing().ref
+                    && incoming().createdAt == existing().createdAt
+                    && incoming().updatedAt == request.time
+                    && (
+                      // Action: Admin Update (Full)
+                      incoming().diff(existing()).affectedKeys().hasOnly(['lat', 'lng', 'status', 'updatedAt', 'area', 'cert', 'date', 'region', 'qty', 'coop', 'email', 'lang', 'risk'])
+                    );
+
+      allow delete: if isOwner(existing());
+    }
+  }
+}

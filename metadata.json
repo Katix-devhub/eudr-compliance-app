@@ -1,0 +1,8 @@
+{
+  "name": "Traverdy - Conformité EUDR",
+  "description": "Solution professionnelle de conformité EUDR. Audit satellite automatisé, géo-localisation intelligente et signature certifiée des déclarations de diligence raisonnée.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
