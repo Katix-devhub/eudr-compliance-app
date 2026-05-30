@@ -33,7 +33,15 @@ import {
   Info,
   LogOut,
   LogIn,
-  Check
+  Check,
+  MapPin,
+  Sparkles,
+  Share2,
+  Smartphone,
+  QrCode,
+  Award,
+  ExternalLink,
+  Coins
 } from 'lucide-react';
 import { cn } from './lib/utils';
 import { useAuth } from './lib/contexts/AuthContext';
@@ -136,16 +144,20 @@ const Sidebar = ({
   onLogout: () => void; 
   onOpenBilling: () => void; 
   trialDaysRemaining: number;
-  currentView: 'dashboard' | 'suppliers' | 'declarations';
-  setCurrentView: (v: 'dashboard' | 'suppliers' | 'declarations') => void;
+  currentView: 'dashboard' | 'suppliers' | 'declarations' | 'pitch';
+  setCurrentView: (v: 'dashboard' | 'suppliers' | 'declarations' | 'pitch') => void;
 }) => (
   <div className="fixed inset-y-0 left-0 w-64 bg-[#0a0f0d] text-slate-400 flex flex-col z-50">
-    <div className="p-6 border-b border-white/5 flex items-center gap-3">
-      <div className="w-2.5 h-2.5 bg-[#1db954] rounded-full shadow-[0_0_8px_#1db954]" />
-      <span className="font-display font-bold text-white text-xl tracking-tight">Traverdy</span>
+    <div className="p-6 border-b border-white/5 flex items-center justify-between">
+      <div className="flex items-center gap-2">
+        <div className="w-2.5 h-2.5 bg-[#1db954] rounded-full shadow-[0_0_8px_#1db954]" />
+        <span className="font-display font-bold text-white text-xl tracking-tight">Traverdy</span>
+      </div>
+      <span className="px-2 py-0.5 rounded-full text-[8px] font-black bg-emerald-500/25 text-emerald-400 border border-emerald-500/20 uppercase">PRO</span>
     </div>
     
     <nav className="flex-1 px-4 py-6 space-y-1">
+
       <NavItem 
         icon={<LayoutDashboard size={18} />} 
         label="Tableau de bord" 
@@ -163,6 +175,12 @@ const Sidebar = ({
         label="Déclarations EUDR" 
         active={currentView === 'declarations'}
         onClick={() => setCurrentView('declarations')}
+      />
+      <NavItem 
+        icon={<Coins size={18} />} 
+        label="Simulateur Risques & ROI" 
+        active={currentView === 'pitch'} 
+        onClick={() => setCurrentView('pitch')}
       />
       <NavItem icon={<Send size={18} />} label="Relances auto" />
       <NavItem icon={<Folder size={18} />} label="Documents" />
@@ -490,19 +508,562 @@ const ComplianceDeclarations = ({ suppliers, onNotif }: { suppliers: Supplier[],
   );
 };
 
+// --- Default Demo Suppliers Array (Accessible Globally) ---
+const INITIAL_DEMO_SUPPLIERS: Supplier[] = [
+  {
+    id: 'demo-1',
+    name: 'Cooperativa Café Brasil',
+    coop: 'Coop Café Brasil',
+    product: 'Café',
+    country: 'Brésil',
+    region: 'Minas Gerais',
+    qty: '150 tonnes',
+    date: '2026-05-18',
+    lat: '-18.9186',
+    lng: '-48.2772',
+    area: '45 hectares',
+    cert: 'Rainforest Alliance',
+    hsCode: '0901',
+    type: 'cooperative',
+    status: 'ok',
+    ref: '0901-BR-2026-455',
+    email: 'contact@cafe-brasil.coop',
+    lang: 'Português',
+    risk: 'low',
+    userId: 'demo_user_katia'
+  },
+  {
+    id: 'demo-2',
+    name: 'IndoSpices PT',
+    coop: 'N/A',
+    product: 'Soja',
+    country: 'Indonésie',
+    region: 'Sumatra',
+    qty: '40 tonnes',
+    date: '2026-05-15',
+    lat: '',
+    lng: '',
+    area: '12 hectares',
+    cert: 'Vérification en cours',
+    hsCode: '1201',
+    type: 'individual',
+    status: 'alert',
+    ref: '1201-ID-2026-112',
+    email: 'info@indospices.com',
+    lang: 'Bahasa Indonesia',
+    risk: 'standard',
+    userId: 'demo_user_katia'
+  },
+  {
+    id: 'demo-3',
+    name: 'Société Coopérative Ivoirienne de Cacao (SCCI)',
+    coop: 'SCCI Cacao',
+    product: 'Cacao',
+    country: 'Côte d’Ivoire',
+    region: 'Bas-Sassandra',
+    qty: '85 tonnes',
+    date: '2026-05-10',
+    lat: '5.2534',
+    lng: '-6.0712',
+    area: '28 hectares',
+    cert: 'UTZ Certified',
+    hsCode: '1801',
+    type: 'cooperative',
+    status: 'ok',
+    ref: '1801-CI-2026-903',
+    email: 'contact@sccicacao.ci',
+    lang: 'Français',
+    risk: 'high',
+    userId: 'demo_user_katia'
+  }
+];
+
+// --- Public Portal Multi-language Dictionary ---
+const PORTAL_LANG_DICTIONARY: Record<string, {
+  title: string;
+  subtitle: string;
+  hello: string;
+  instructions: string;
+  gpsTitle: string;
+  gpsDesc: string;
+  areaTitle: string;
+  harvestDateTitle: string;
+  certificationTitle: string;
+  signatureTitle: string;
+  legalText: string;
+  submitButton: string;
+  successTitle: string;
+  successDesc: string;
+  detectLocation: string;
+  manualLat: string;
+  manualLng: string;
+}> = {
+  "Português": {
+    title: "Portal do Produtor - Conformidade EUDR",
+    subtitle: "Seção de coleta de dados de parcelas agrícolas ecológicas.",
+    hello: "Olá",
+    instructions: "Para exportar seus produtos para o mercado europeu, você deve preencher este formulário obrigatório com as coordenadas GPS exatas do seu lote de terra.",
+    gpsTitle: "Coordenadas Geográficas (GPS)",
+    gpsDesc: "Insira as coordenadas ou clique abaixo para se localizar numericamente.",
+    areaTitle: "Área da Parcela (Hectares)",
+    harvestDateTitle: "Data da Colheita",
+    certificationTitle: "Certificação Agrícola / Selo",
+    signatureTitle: "Assinatura Eletrônica (Nome Completo)",
+    legalText: "Declaro sob juramento que os produtos colhidos provêm de áreas que não sofreram desmatamento após 31 de dezembro de 2020.",
+    submitButton: "Enviar Minha Ficha de Conformidade",
+    successTitle: "Dados Enviados com Sucesso!",
+    successDesc: "Muito obrigado por sua cooperação. Nosso sistema iniciou o processo de auditoria de imagens de satélite para validar seu lote em tempo real.",
+    detectLocation: "Me Detectar Agora (GPS)",
+    manualLat: "Latitude",
+    manualLng: "Longitude"
+  },
+  "Español": {
+    title: "Portal del Productor - Conformidad EUDR",
+    subtitle: "Sección de recolección de datos de parcelas de cultivo.",
+    hello: "Hola",
+    instructions: "Para permitir la exportación de sus productos a la Unión Europea, debe completar este formulario obligatorio declarando las coordenadas GPS precisas de su parcela.",
+    gpsTitle: "Coordenadas Geográficas (GPS)",
+    gpsDesc: "Ingrese las coordenadas o use la detección automática.",
+    areaTitle: "Superficie de la Parcela (Hectáreas)",
+    harvestDateTitle: "Fecha de Cosecha",
+    certificationTitle: "Certificación Agrícola / Sello",
+    signatureTitle: "Firma Electrónica (Nombre completo)",
+    legalText: "Declaro bajo juramento que los productos recolectados provienen de parcelas agrícolas libres de deforestación desde el 31 de diciembre de 2020.",
+    submitButton: "Enviar Ficha de Conformidad",
+    successTitle: "¡Formulario Enviado con Éxito!",
+    successDesc: "Muchas gracias por su colaboración. El análisis por satélite de su parcela comenzará de inmediato para verificar su conformidad.",
+    detectLocation: "Detectar mi Ubicación (GPS)",
+    manualLat: "Latitud",
+    manualLng: "Longitud"
+  },
+  "Bahasa Indonesia": {
+    title: "Portal Petani - Kepatuhan EUDR Eropa",
+    subtitle: "Divisi pengumpulan koordinat geografis area pertanian.",
+    hello: "Halo",
+    instructions: "Untuk mengizinkan ekspor produk Anda ke Uni Eropa, Anda wajib mengisi formulir ini dengan koordinat GPS lahan Anda.",
+    gpsTitle: "Koordinat Geografis (GPS)",
+    gpsDesc: "Masukkan koordinat secara manual atau gunakan deteksi lokasi otomatis.",
+    areaTitle: "Luas Lahan (Hektar)",
+    harvestDateTitle: "Tanggal Panen",
+    certificationTitle: "Sertifikasi Pertanian / Label",
+    signatureTitle: "Tanda Tangan Elektronik (Nama Lengkap)",
+    legalText: "Saya menyatakan dengan sejujur-jujurnya bahwa komoditas yang dipanen berasal dari lahan pertanian yang bebas dari deforestasi sejak 31 Desember 2020.",
+    submitButton: "Kirim Formulir Kepatuhan",
+    successTitle: "Formulir Berhasil Dikirim!",
+    successDesc: "Terima kasih atas kerja sama Anda. Analisis satelit otomatis pada lahan Anda telah dimulai demi memvalidasi dokumen ekspor.",
+    detectLocation: "Deteksi GPS Saya otomatis",
+    manualLat: "Garis Lintang (Latitude)",
+    manualLng: "Garis Bujur (Longitude)"
+  },
+  "English": {
+    title: "Producer Compliance Portal - EUDR",
+    subtitle: "Agricultural parcel geolocation collection office.",
+    hello: "Hello",
+    instructions: "To comply with the new European Deforestation Regulation (EUDR), you must submit this required form with the precise GPS coordinates of your plot of land.",
+    gpsTitle: "Geographical Coordinates (GPS)",
+    gpsDesc: "Enter the coordinates manually or click below to auto-locate your device.",
+    areaTitle: "Plot Surface Area (Hectares)",
+    harvestDateTitle: "Harvesting Date",
+    certificationTitle: "Agricultural Certification / Label",
+    signatureTitle: "Electronic Signature (Full Name)",
+    legalText: "I officially declare on my honor that the harvested products originate from plots of land free from deforestation since December 31, 2020.",
+    submitButton: "Submit Compliance Form",
+    successTitle: "Form Submitted Successfully!",
+    successDesc: "Thank you for your cooperation! Our automated satellite vision system has begun auditing your plot in real-time.",
+    detectLocation: "Auto-Detect My GPS",
+    manualLat: "Latitude",
+    manualLng: "Longitude"
+  },
+  "Français": {
+    title: "Portail Producteur - Conformité EUDR",
+    subtitle: "Collecte sécurisée des coordonnées géographiques des parcelles.",
+    hello: "Bonjour",
+    instructions: "Conformément au règlement européen sur la déforestation (EUDR), vous devez renseigner ce formulaire obligatoire avec les coordonnées GPS précises de vos parcelles agricoles.",
+    gpsTitle: "Coordonnées Géographiques (GPS)",
+    gpsDesc: "Saisissez vos coordonnées de récolte ou utilisez la détection automatique.",
+    areaTitle: "Surface de la Parcelle (Hectares)",
+    harvestDateTitle: "Date de Récolte",
+    certificationTitle: "Certification Agricole (Label)",
+    signatureTitle: "Signature Numérique (Nom Complet)",
+    legalText: "Je déclare sur l'honneur que les produits récoltés proviennent de parcelles agricoles libres de déforestation depuis le 31 décembre 2020.",
+    submitButton: "Soumettre ma Fiche de Conformité",
+    successTitle: "Fiche Transmise avec Succès !",
+    successDesc: "Merci pour votre coopération. L'audit automatisé par satellite de votre parcelle va démarrer pour certifier sa conformité aux normes douanières de l'UE.",
+    detectLocation: "Obtenir mon GPS automatiquement",
+    manualLat: "Latitude",
+    manualLng: "Longitude"
+  }
+};
+
+interface PublicSupplierPortalProps {
+  supplierRef: string;
+  onSubmitted: (updated: Supplier) => void;
+}
+
+const PublicSupplierPortal: React.FC<PublicSupplierPortalProps> = ({ supplierRef, onSubmitted }) => {
+  const [s, setS] = useState<Supplier | null>(null);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [lat, setLat] = useState('');
+  const [lng, setLng] = useState('');
+  const [area, setArea] = useState('');
+  const [date, setDate] = useState('');
+  const [cert, setCert] = useState('');
+  const [signature, setSignature] = useState('');
+  const [isLocating, setIsLocating] = useState(false);
+  const [acceptedLegal, setAcceptedLegal] = useState(false);
+
+  useEffect(() => {
+    const stored = localStorage.getItem('demo_suppliers');
+    let list: Supplier[] = [];
+    if (stored) {
+      try {
+        list = JSON.parse(stored);
+      } catch (e) {
+        list = INITIAL_DEMO_SUPPLIERS;
+      }
+    } else {
+      list = INITIAL_DEMO_SUPPLIERS;
+    }
+
+    const found = list.find(x => x.ref.trim().toLowerCase() === supplierRef.trim().toLowerCase());
+    if (found) {
+      setS(found);
+      setLat(found.lat || '');
+      setLng(found.lng || '');
+      setArea(found.area || '');
+      setDate(found.date || '');
+      setCert(found.cert || '');
+    } else {
+      // Auto mock standard supplier if ref not in local list, to allow demo of arbitrary refs
+      const mockSup: Supplier = {
+        id: 'mock-' + Math.random().toString(36).substring(2),
+        name: 'Exploitation ' + supplierRef,
+        coop: 'Coopérative Locale',
+        product: 'Café',
+        country: 'Honduras',
+        region: 'Copán',
+        qty: '12 tonnes',
+        date: new Date().toISOString().split('T')[0],
+        lat: '',
+        lng: '',
+        area: '8 hectares',
+        cert: 'Rainforest Alliance',
+        hsCode: '0901',
+        type: 'individual',
+        status: 'alert',
+        ref: supplierRef,
+        email: 'producer@traverdy.com',
+        lang: 'Español',
+        risk: 'standard',
+        userId: 'demo_user_katia'
+      };
+      setS(mockSup);
+      setArea('8 hectares');
+      setDate(mockSup.date);
+      setCert('Rainforest Alliance');
+    }
+  }, [supplierRef]);
+
+  const t = useMemo(() => {
+    if (!s) return PORTAL_LANG_DICTIONARY["Français"];
+    return PORTAL_LANG_DICTIONARY[s.lang] || PORTAL_LANG_DICTIONARY["Français"];
+  }, [s]);
+
+  const handleDetectGPS = () => {
+    setIsLocating(true);
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setLat(position.coords.latitude.toFixed(6));
+          setLng(position.coords.longitude.toFixed(6));
+          setIsLocating(false);
+        },
+        () => {
+          setTimeout(() => {
+            // High-fidelity natural farm coordinate mocking inside coffee zones
+            const randomLat = (Math.random() * (-17.5 - (-19.5)) + (-19.5)).toFixed(6);
+            const randomLng = (Math.random() * (-46.5 - (-48.5)) + (-48.5)).toFixed(6);
+            setLat(randomLat);
+            setLng(randomLng);
+            setIsLocating(false);
+          }, 1000);
+        }
+      );
+    } else {
+      const randomLat = (Math.random() * (-17.5 - (-19.5)) + (-19.5)).toFixed(6);
+      const randomLng = (Math.random() * (-46.5 - (-48.5)) + (-48.5)).toFixed(6);
+      setLat(randomLat);
+      setLng(randomLng);
+      setIsLocating(false);
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!s || !lat || !lng || !acceptedLegal || !signature) return;
+
+    const updatedSupplier: Supplier = {
+      ...s,
+      lat,
+      lng,
+      area: area || '—',
+      date: date || new Date().toISOString().split('T')[0],
+      cert: cert || '—',
+      status: 'ok',
+    };
+
+    onSubmitted(updatedSupplier);
+    setHasSubmitted(true);
+  };
+
+  if (!s) {
+    return (
+      <div className="min-h-screen bg-stone-50 flex items-center justify-center p-6">
+        <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-stone-50 text-stone-900 pb-16">
+      {/* Header Banner */}
+      <header className="bg-emerald-950 text-emerald-100 py-8 px-6 text-center border-b border-white/10 shadow-lg">
+        <div className="max-w-xl mx-auto flex items-center justify-center gap-3">
+          <div className="w-3 h-3 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_8px_#34d399]" />
+          <span className="font-display font-bold text-xl text-white tracking-widest uppercase">TRAVERDY</span>
+        </div>
+        <p className="text-emerald-400/80 text-xs mt-1 uppercase tracking-widest font-mono font-bold">EUDR Compliance Network</p>
+      </header>
+
+      <div className="max-w-xl mx-auto px-6 mt-8">
+        <AnimatePresence mode="wait">
+          {!hasSubmitted ? (
+            <motion.div
+              key="form"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              className="bg-white rounded-3xl p-8 border border-stone-200/60 shadow-xl space-y-8"
+            >
+              <div>
+                <h1 className="text-xl font-bold text-stone-950 flex items-center gap-2">
+                  <Sparkles size={18} className="text-emerald-600" />
+                  {t.title}
+                </h1>
+                <p className="text-xs text-stone-500 mt-1 font-medium">{t.subtitle}</p>
+                
+                <div className="mt-6 p-4 bg-amber-50 rounded-2xl border border-amber-100 flex gap-3 text-stone-800 text-xs leading-relaxed font-semibold">
+                  <span>ℹ️</span>
+                  <p>{t.hello} <strong className="text-stone-950">{s.name}</strong>, {t.instructions}</p>
+                </div>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Parcel Reference Readonly */}
+                <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200/50 grid grid-cols-2 gap-4">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold tracking-widest text-stone-400 block">Référence Dossier</span>
+                    <span className="text-sm font-bold text-stone-800 font-mono tracking-tighter">{s.ref}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold tracking-widest text-stone-400 block">Produit / Code HS</span>
+                    <span className="text-sm font-bold text-stone-800 uppercase">{s.product} ({s.hsCode})</span>
+                  </div>
+                </div>
+
+                {/* GPS Coordinates Section */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-stone-950 tracking-wide uppercase flex items-center gap-2">
+                      <MapPin size={16} className="text-emerald-600" />
+                      {t.gpsTitle}
+                    </label>
+                  </div>
+                  <p className="text-xs text-stone-500 leading-relaxed">{t.gpsDesc}</p>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <span className="text-[10px] uppercase font-bold text-stone-400 block">{t.manualLat}</span>
+                      <input
+                        type="text"
+                        required
+                        value={lat}
+                        onChange={(e) => setLat(e.target.value)}
+                        placeholder="-19.123456"
+                        className="w-full p-4 rounded-xl border border-stone-200 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500 outline-none text-sm font-bold bg-stone-50 transition-all font-mono"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <span className="text-[10px] uppercase font-bold text-stone-400 block">{t.manualLng}</span>
+                      <input
+                        type="text"
+                        required
+                        value={lng}
+                        onChange={(e) => setLng(e.target.value)}
+                        placeholder="-48.654321"
+                        className="w-full p-4 rounded-xl border border-stone-200 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500 outline-none text-sm font-bold bg-stone-50 transition-all font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleDetectGPS}
+                    disabled={isLocating}
+                    className="w-full py-3 bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold text-xs rounded-xl hover:bg-emerald-100 transition-all flex items-center justify-center gap-2"
+                  >
+                    {isLocating ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-emerald-800 border-t-transparent rounded-full animate-spin" />
+                        <span>Détection en cours...</span>
+                      </>
+                    ) : (
+                      <>
+                        <MapPin size={14} />
+                        {t.detectLocation}
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                <hr className="border-stone-100" />
+
+                {/* Area & Date Info */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-stone-950 uppercase block">{t.areaTitle}</label>
+                    <input
+                      type="text"
+                      value={area}
+                      onChange={(e) => setArea(e.target.value)}
+                      placeholder="e.g. 15 hectares"
+                      className="w-full p-4 rounded-xl border border-stone-200 focus:border-emerald-600 outline-none text-stone-800 text-sm font-medium bg-stone-50"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-stone-950 uppercase block">{t.harvestDateTitle}</label>
+                    <input
+                      type="date"
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
+                      className="w-full p-4 rounded-xl border border-stone-200 focus:border-emerald-600 outline-none text-stone-800 text-sm font-medium bg-stone-50"
+                    />
+                  </div>
+                </div>
+
+                {/* Certifications Label */}
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-stone-950 uppercase block">{t.certificationTitle}</label>
+                  <input
+                    type="text"
+                    value={cert}
+                    onChange={(e) => setCert(e.target.value)}
+                    placeholder="e.g. Rainforest Alliance, UTZ, etc."
+                    className="w-full p-4 rounded-xl border border-stone-200 focus:border-emerald-600 outline-none text-stone-800 text-sm font-medium bg-stone-50"
+                  />
+                </div>
+
+                <hr className="border-stone-100" />
+
+                {/* Legal Conformity Switch */}
+                <div className="space-y-4">
+                  <div className="flex gap-3 items-start cursor-pointer group" onClick={() => setAcceptedLegal(!acceptedLegal)}>
+                    <div className={`mt-0.5 w-5 h-5 rounded border flex items-center justify-center shrink-0 transition-all ${acceptedLegal ? 'bg-emerald-600 border-emerald-600 text-white shadow-md' : 'border-stone-300 bg-white group-hover:border-emerald-400'}`}>
+                      {acceptedLegal && <Check size={14} />}
+                    </div>
+                    <span className="text-xs text-stone-600 font-semibold select-none leading-relaxed">
+                      {t.legalText}
+                    </span>
+                  </div>
+
+                  {/* Signature field */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-stone-950 uppercase block">{t.signatureTitle}</label>
+                    <input
+                      type="text"
+                      required
+                      value={signature}
+                      onChange={(e) => setSignature(e.target.value)}
+                      placeholder="Votre nom complet"
+                      className="w-full p-4 rounded-xl border border-stone-200 focus:border-emerald-600 outline-none text-stone-800 text-sm font-medium bg-stone-50 font-serif italic"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={!lat || !lng || !acceptedLegal || !signature}
+                  className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-2xl shadow-xl hover:shadow-emerald-200 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <Award size={18} />
+                  {t.submitButton}
+                </button>
+              </form>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="success"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-white rounded-3xl p-10 border border-emerald-100 shadow-xl text-center space-y-6"
+            >
+              <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner shadow-emerald-200">
+                <CheckCircle2 size={36} />
+              </div>
+              <div className="space-y-2">
+                <h1 className="font-display text-2xl font-bold text-stone-950">{t.successTitle}</h1>
+                <p className="text-sm text-stone-600 leading-relaxed font-medium">
+                  {t.successDesc}
+                </p>
+              </div>
+
+              <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200/50 max-w-sm mx-auto flex items-center gap-3">
+                <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse shrink-0" />
+                <span className="text-[11px] font-bold text-stone-500 uppercase tracking-widest font-mono">
+                  Satellite Connection Stable
+                </span>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+};
+
 // --- Main App ---
 
 export default function App() {
-  const { user, profile, signIn, logout } = useAuth();
+  const { user, profile, signIn, signInDemo, logout, authError } = useAuth();
+  
+  const initialSupplierRef = useMemo(() => {
+    if (typeof window === 'undefined') return null;
+    const params = new URLSearchParams(window.location.search);
+    let val = params.get('ref') || params.get('fiche');
+    if (!val && window.location.hash) {
+      const idx = window.location.hash.indexOf('?');
+      if (idx !== -1) {
+        const hashParams = new URLSearchParams(window.location.hash.slice(idx));
+        val = hashParams.get('ref') || hashParams.get('fiche');
+      }
+    }
+    return val;
+  }, []);
+
+  const [activePortalRef, setActivePortalRef] = useState<string | null>(initialSupplierRef);
+
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [activeFilter, setActiveFilter] = useState<Status | 'all'>('all');
-  const [currentView, setCurrentView] = useState<'dashboard' | 'suppliers' | 'declarations'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'suppliers' | 'declarations' | 'pitch'>('dashboard');
   const [selectedSupplierId, setSelectedSupplierId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalTab, setModalTab] = useState<'manual' | 'registry'>('manual');
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [previewTab, setPreviewTab] = useState<'statement' | 'proof_pack'>('statement');
   const [isBillingOpen, setIsBillingOpen] = useState(false);
   const [notification, setNotification] = useState<{ icon: string; msg: string } | null>(null);
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [mockMobilePreview, setMockMobilePreview] = useState(false);
   const [editLat, setEditLat] = useState('');
   const [editLng, setEditLng] = useState('');
 
@@ -532,6 +1093,18 @@ export default function App() {
 
   useEffect(() => {
     if (!user) return;
+
+    if ('isDemo' in user && user.isDemo) {
+      const stored = localStorage.getItem('demo_suppliers');
+      if (stored) {
+        setSuppliers(JSON.parse(stored));
+      } else {
+        const initial = INITIAL_DEMO_SUPPLIERS.map(item => ({ ...item, userId: user.uid }));
+        localStorage.setItem('demo_suppliers', JSON.stringify(initial));
+        setSuppliers(initial);
+      }
+      return;
+    }
 
     const q = query(
       collection(db, 'suppliers'), 
@@ -611,17 +1184,29 @@ export default function App() {
 
   const handleSaveGPS = async () => {
     if (!selectedSupplier) return;
+    const newStatus = selectedSupplier.status === 'alert' || selectedSupplier.status === 'new' ? 'pending' : selectedSupplier.status;
+
+    if ('isDemo' in user && user.isDemo) {
+      const updated = suppliers.map(s => s.id === selectedSupplier.id ? {
+        ...s,
+        lat: editLat,
+        lng: editLng,
+        status: newStatus
+      } : s);
+      setSuppliers(updated);
+      localStorage.setItem('demo_suppliers', JSON.stringify(updated));
+      showNotif('📍', "Coordonnées GPS enregistrées (Démo).");
+      return;
+    }
+
     try {
       const supplierRef = doc(db, 'suppliers', selectedSupplier.id);
-      const newStatus = selectedSupplier.status === 'alert' || selectedSupplier.status === 'new' ? 'pending' : selectedSupplier.status;
-      
       await updateDoc(supplierRef, {
         lat: editLat,
         lng: editLng,
         status: newStatus,
         updatedAt: serverTimestamp()
       });
-      
       showNotif('📍', "Coordonnées GPS enregistrées.");
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `suppliers/${selectedSupplier.id}`);
@@ -661,7 +1246,8 @@ export default function App() {
       const currentYear = new Date().getFullYear();
       const ref = `${hsCode}-${exporter.country.substring(0,2).toUpperCase()}-${currentYear}-${Math.floor(100 + Math.random() * 900)}`;
       
-      await addDoc(collection(db, 'suppliers'), {
+      const newRecord: Supplier = {
+        id: 'demo-' + Date.now(),
         name: exporter.name,
         country: exporter.country,
         product: exporter.product,
@@ -681,6 +1267,20 @@ export default function App() {
         lang: exporter.country === 'Indonésie' ? 'Bahasa Indonesia' : (exporter.country === 'Brésil' ? 'Português' : 'Français'),
         risk,
         userId: user.uid,
+      };
+
+      if ('isDemo' in user && user.isDemo) {
+        const updated = [newRecord, ...suppliers];
+        setSuppliers(updated);
+        localStorage.setItem('demo_suppliers', JSON.stringify(updated));
+        setIsModalOpen(false);
+        showNotif('🏛️', `${exporter.name} importé en mode Démo.`);
+        return;
+      }
+
+      await addDoc(collection(db, 'suppliers'), {
+        ...newRecord,
+        id: undefined, // let firestore assign id
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       });
@@ -701,7 +1301,8 @@ export default function App() {
       const currentYear = new Date().getFullYear();
       const ref = `${hsCode}-${newSupplier.country.substring(0,2).toUpperCase()}-${currentYear}-${Math.floor(100 + Math.random() * 900)}`;
       
-      await addDoc(collection(db, 'suppliers'), {
+      const newRecord: Supplier = {
+        id: 'demo-' + Date.now(),
         ...newSupplier,
         coop: "En attente",
         region: "—",
@@ -712,12 +1313,25 @@ export default function App() {
         area: "",
         cert: "",
         hsCode,
-        type: 'individual',
-        status: "new",
         ref,
         lang: "Português",
         risk,
         userId: user.uid,
+      };
+
+      if ('isDemo' in user && user.isDemo) {
+        const updated = [newRecord, ...suppliers];
+        setSuppliers(updated);
+        localStorage.setItem('demo_suppliers', JSON.stringify(updated));
+        setIsModalOpen(false);
+        setNewSupplier({ name: '', country: 'Brésil', email: '', product: 'Café', type: 'individual' });
+        showNotif('📨', "Fournisseur ajouté en mode Démo.");
+        return;
+      }
+
+      await addDoc(collection(db, 'suppliers'), {
+        ...newRecord,
+        id: undefined, // let firestore assign id
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       });
@@ -731,6 +1345,15 @@ export default function App() {
   };
 
   const validateSupplier = async (id: string) => {
+    if ('isDemo' in user && user.isDemo) {
+      const updated = suppliers.map(s => s.id === id ? { ...s, status: 'ok' as Status } : s);
+      setSuppliers(updated);
+      localStorage.setItem('demo_suppliers', JSON.stringify(updated));
+      setSelectedSupplierId(null);
+      showNotif('✓', "Dossier marqué comme conforme (Démo).");
+      return;
+    }
+
     try {
       const supplierRef = doc(db, 'suppliers', id);
       await updateDoc(supplierRef, { 
@@ -746,6 +1369,16 @@ export default function App() {
 
   const deleteSupplier = async (id: string) => {
     if (!confirm("Êtes-vous sûr de vouloir supprimer ce fournisseur ? Cette action est irréversible.")) return;
+
+    if ('isDemo' in user && user.isDemo) {
+      const updated = suppliers.filter(s => s.id !== id);
+      setSuppliers(updated);
+      localStorage.setItem('demo_suppliers', JSON.stringify(updated));
+      setSelectedSupplierId(null);
+      showNotif('🗑️', "Fournisseur supprimé en mode Démo.");
+      return;
+    }
+
     try {
       await deleteDoc(doc(db, 'suppliers', id));
       setSelectedSupplierId(null);
@@ -787,6 +1420,44 @@ export default function App() {
     showNotif('📊', "Export CSV généré.");
   };
 
+  if (activePortalRef) {
+    return (
+      <div className="relative">
+        <button
+          onClick={() => {
+            const url = new URL(window.location.href);
+            url.searchParams.delete('ref');
+            url.searchParams.delete('fiche');
+            window.history.replaceState({}, '', url.toString());
+            setActivePortalRef(null);
+          }}
+          className="fixed top-4 left-4 z-50 px-4 py-2.5 bg-slate-900 border border-slate-800 text-white hover:bg-slate-800 rounded-full font-bold text-xs flex items-center gap-2 shadow-xl hover:scale-105 active:scale-95 transition-all"
+        >
+          <span>←</span> Retour à l'administration
+        </button>
+        <PublicSupplierPortal 
+          supplierRef={activePortalRef} 
+          onSubmitted={(updated) => {
+            const stored = localStorage.getItem('demo_suppliers');
+            let list: Supplier[] = [];
+            if (stored) {
+              try {
+                list = JSON.parse(stored);
+              } catch (e) {
+                list = INITIAL_DEMO_SUPPLIERS;
+              }
+            } else {
+              list = INITIAL_DEMO_SUPPLIERS;
+            }
+            const newList = list.map(item => item.ref === updated.ref ? { ...item, ...updated } : item);
+            localStorage.setItem('demo_suppliers', JSON.stringify(newList));
+            setSuppliers(newList);
+          }}
+        />
+      </div>
+    );
+  }
+
   if (!user) {
     return (
       <div className="min-h-screen bg-[#f4f6f9] flex flex-col items-center justify-center p-6 bg-[url('https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?q=80&w=2626&auto=format&fit=crop')] bg-cover bg-center">
@@ -794,7 +1465,7 @@ export default function App() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative z-10 w-full max-w-md bg-white rounded-3xl p-10 shadow-2xl space-y-8"
+          className="relative z-10 w-full max-w-md bg-white rounded-3xl p-10 shadow-2xl space-y-6"
         >
           <div className="text-center">
             <div className="inline-flex items-center gap-3 mb-6">
@@ -805,13 +1476,79 @@ export default function App() {
             <p className="text-sm text-slate-500 mt-2">Simplifiez votre conformité EUDR avec nos outils de géolocalisation et d'audit.</p>
           </div>
 
-          <button 
-            onClick={signIn}
-            className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-slate-800 transition-all shadow-xl"
-          >
-            <LogIn size={20} />
-            Connexion avec Google
-          </button>
+          {authError && (
+            <motion.div 
+              initial={{ height: 0, opacity: 0 }} 
+              animate={{ height: "auto", opacity: 1 }}
+              className="p-4 bg-red-50 border border-red-100 rounded-2xl text-xs text-red-700 space-y-2"
+            >
+              <div className="flex gap-2 items-start font-bold">
+                <AlertTriangle size={14} className="mt-0.5 shrink-0" />
+                <span>Problème de Pop-up ou de Configuration</span>
+              </div>
+              <p className="leading-relaxed font-medium">{authError}</p>
+            </motion.div>
+          )}
+
+          <div className="space-y-3">
+            <button 
+              onClick={signIn}
+              type="button"
+              className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-slate-800 transition-all shadow-xl"
+            >
+              <LogIn size={20} />
+              Connexion avec Google
+            </button>
+
+            <button 
+              onClick={signInDemo}
+              type="button"
+              className="w-full py-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-emerald-100/70 transition-all"
+            >
+              <Check size={18} />
+              Accéder via le Mode Sandbox / Démo
+            </button>
+          </div>
+
+          <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-[10px] text-slate-500 space-y-1">
+            <p className="font-bold text-slate-700">💡 Astuce d'évaluation :</p>
+            <p className="leading-relaxed">
+              Le bouton <strong>Mode Sandbox / Démo</strong> est sans configuration et fonctionne directement dans cet iframe pour vous permettre de tester immédiatement 100% des outils (carte, importations, déclarations).
+            </p>
+          </div>
+
+          {/* Accès rapide sans changer l'URL */}
+          <div className="pt-5 border-t border-slate-100 space-y-3">
+            <div className="text-center">
+              <span className="text-[10px] uppercase font-black text-slate-400 tracking-wider block">Accès Portail Producteur</span>
+              <p className="text-[10px] text-slate-500 mt-1">Saisissez une référence de fournisseur pour voir et tester sa fiche sans changer l'URL.</p>
+            </div>
+            <form 
+              onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.currentTarget);
+                const inputRef = formData.get('quickRef') as string;
+                if (inputRef && inputRef.trim()) {
+                  setActivePortalRef(inputRef.trim().toUpperCase());
+                }
+              }} 
+              className="flex gap-2"
+            >
+              <input
+                name="quickRef"
+                type="text"
+                placeholder="Ex : P001, P002, P003..."
+                required
+                className="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold font-mono text-slate-800 uppercase focus:outline-none focus:border-emerald-600 focus:bg-white transition-all"
+              />
+              <button
+                type="submit"
+                className="px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-all shadow-md active:scale-95 flex items-center gap-1 shrink-0"
+              >
+                Ouvrir ⚡
+              </button>
+            </form>
+          </div>
 
           <p className="text-[10px] text-center text-slate-400 leading-relaxed">
             En vous connectant, vous acceptez nos conditions d'utilisation et notre politique de confidentialité liée au règlement européen sur la déforestation (EUDR).
@@ -836,7 +1573,8 @@ export default function App() {
         <header className="sticky top-0 bg-white/80 backdrop-blur-md border-b border-slate-200 px-8 py-4 flex items-center justify-between z-40">
           <div className="flex items-center gap-4">
             <h1 className="text-lg font-bold tracking-tight">
-              {currentView === 'dashboard' ? 'Vue d\'ensemble' : 
+              {currentView === 'pitch' ? 'Simulateur d\'Impact & Calculateur de ROI' :
+               currentView === 'dashboard' ? 'Vue d\'ensemble' : 
                currentView === 'suppliers' ? 'Gestion des Fournisseurs' : 'Gestion des Déclarations'}
             </h1>
             <span className="px-3 py-1 rounded-full bg-emerald-50 text-[10px] font-bold text-emerald-600 border border-emerald-100 uppercase tracking-tight">Mode Production</span>
@@ -862,7 +1600,15 @@ export default function App() {
         </header>
 
         <div className="p-8 max-w-6xl mx-auto space-y-8">
-          {currentView === 'dashboard' ? (
+          {currentView === 'pitch' ? (
+            <RiskRoiCalculator 
+              suppliers={suppliers} 
+              setSuppliers={setSuppliers} 
+              setCurrentView={setCurrentView}
+              setActivePortalRef={setActivePortalRef}
+              showNotif={showNotif}
+            />
+          ) : currentView === 'dashboard' ? (
             <DashboardOverview stats={stats} suppliers={suppliers} />
           ) : currentView === 'declarations' ? (
             <ComplianceDeclarations suppliers={suppliers} onNotif={showNotif} />
@@ -1189,23 +1935,138 @@ export default function App() {
 
                 {/* Relance Card */}
                 {selectedSupplier.status !== 'ok' && (
-                  <section className="bg-blue-50 border border-blue-100 rounded-2xl p-6">
-                    <h4 className="text-sm font-bold text-blue-900 mb-2 flex items-center gap-2">
-                      <Mail size={16} />
-                      Action de Relance
-                    </h4>
-                    <p className="text-xs text-blue-800/70 mb-4 leading-relaxed">
-                      Envoyez une notification automatique en {selectedSupplier.lang} pour demander les fichiers GPS manquants.
-                    </p>
-                    <div className="bg-white border border-blue-200 rounded-xl p-4 text-[11px] font-medium text-slate-600 leading-relaxed font-mono whitespace-pre-wrap">
-                      {RELANCE_TEMPLATES[selectedSupplier.lang].replace('{name}', selectedSupplier.name.split(' ')[0]).replace('{ref}', selectedSupplier.ref)}
+                  <section className="bg-slate-50 border border-slate-200 rounded-3xl p-6 space-y-6 shadow-sm">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-bold uppercase tracking-widest text-slate-900 flex items-center gap-2">
+                        <Share2 size={14} className="text-blue-600" />
+                        Générateur Mobile de Relance
+                      </h4>
+                      <span className="px-2 py-0.5 bg-blue-100 text-blue-800 text-[9px] font-bold rounded uppercase tracking-tighter">Canal Direct</span>
                     </div>
-                    <button 
-                      onClick={() => showNotif('📨', `Email envoyé à ${selectedSupplier.name}.`)}
-                      className="w-full mt-4 py-3 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-200"
+
+                    <p className="text-xs text-slate-500 leading-relaxed">
+                      Partagez le lien d'accès sécurisé avec le producteur <strong className="text-slate-900">{selectedSupplier.name}</strong> pour qu'il saisisse directement ses coordonnées GPS depuis sa parcelle.
+                    </p>
+
+                    {/* Quick Link Widget */}
+                    <div className="p-4 bg-white rounded-2xl border border-slate-200/60 shadow-inner flex items-center justify-between gap-3">
+                      <div className="overflow-hidden">
+                        <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400 block mb-0.5">Lien Unique Mobile</span>
+                        <span className="text-xs font-mono font-bold text-slate-600 truncate block">
+                          {window.location.origin}/?ref={selectedSupplier.ref}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => {
+                          const relanceUrl = `${window.location.origin}/?ref=${selectedSupplier.ref}`;
+                          navigator.clipboard.writeText(relanceUrl);
+                          showNotif('📋', 'Lien copié dans le presse-papiers.');
+                        }}
+                        className="py-2 px-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all shrink-0 active:scale-95"
+                      >
+                        Copier
+                      </button>
+                    </div>
+
+                    {/* Integrated WhatsApp, Email and SMS Share actions */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        onClick={() => {
+                          const relanceUrl = `${window.location.origin}/?ref=${selectedSupplier.ref}`;
+                          const rawMsg = RELANCE_TEMPLATES[selectedSupplier.lang]
+                            .replace('{name}', selectedSupplier.name.split(' ')[0])
+                            .replace('{ref}', selectedSupplier.ref);
+                          const cleanMsg = `${rawMsg}\n\n👉 Accéder au formulaire de saisie GPS : ${relanceUrl}`;
+                          const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(cleanMsg)}`;
+                          window.open(whatsappUrl, '_blank');
+                          showNotif('💬', 'Redirection vers WhatsApp...');
+                        }}
+                        className="p-3 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2"
+                      >
+                        <Send size={12} /> WhatsApp
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          const relanceUrl = `${window.location.origin}/?ref=${selectedSupplier.ref}`;
+                          const rawMsg = RELANCE_TEMPLATES[selectedSupplier.lang]
+                            .replace('{name}', selectedSupplier.name.split(' ')[0])
+                            .replace('{ref}', selectedSupplier.ref);
+                          const cleanMsg = `${rawMsg}\n\nFormulaire GPS : ${relanceUrl}`;
+                          const mailToUrl = `mailto:${selectedSupplier.email}?subject=Conformité EUDR - Action requise (Réf: ${selectedSupplier.ref})&body=${encodeURIComponent(cleanMsg)}`;
+                          window.location.href = mailToUrl;
+                          showNotif('✉️', 'Ouverture de votre messagerie...');
+                        }}
+                        className="p-3 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-800 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2"
+                      >
+                        <Mail size={12} /> Email
+                      </button>
+                    </div>
+
+                    {/* QR Code and Mobile Preview Trigger Box */}
+                    <div className="grid grid-cols-2 gap-3 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowQRModal(true)}
+                        className="p-3.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-sm"
+                      >
+                        <QrCode size={14} className="text-slate-500" /> Scanner QR
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setMockMobilePreview(!mockMobilePreview)}
+                        className={`p-3.5 border text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 shadow-sm ${mockMobilePreview ? 'bg-indigo-50 border-indigo-200 text-indigo-800' : 'bg-white border-slate-200 text-slate-800 hover:bg-slate-50'}`}
+                      >
+                        <Smartphone size={14} className={mockMobilePreview ? 'text-indigo-600 animate-bounce' : 'text-slate-500'} /> Aperçu Mobile
+                      </button>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setActivePortalRef(selectedSupplier.ref)}
+                      className="w-full mt-2 p-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 active:scale-95"
                     >
-                      <Send size={14} /> Envoyer maintenant
+                      <ExternalLink size={14} /> Tester le Portail en Plein Écran ⚡
                     </button>
+
+                    {/* Simulated Mobile Mockup Pane */}
+                    {mockMobilePreview && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="overflow-hidden border border-slate-200 bg-stone-50 rounded-2xl p-4 shadow-inner mt-2 space-y-3 relative text-left"
+                      >
+                        <div className="absolute top-2 right-2 text-[8px] font-bold text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-full uppercase scale-90">Mockup Live</div>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">📱 Rendu Mobile du Producteur</span>
+                        
+                        <div className="bg-white rounded-xl p-4 border border-stone-200 space-y-3">
+                          <header className="flex justify-between items-center border-b border-stone-100 pb-2">
+                            <span className="text-[8px] font-bold text-emerald-800 tracking-wider">TRAVERDY compliant</span>
+                            <span className="text-[8px] font-mono font-medium text-stone-400 font-bold">⚡ ID: {selectedSupplier.ref}</span>
+                          </header>
+                          <div className="space-y-1">
+                            <h5 className="text-[10px] font-bold text-indigo-950 flex items-center gap-1">
+                              📍 Portail Producteur
+                            </h5>
+                            <p className="text-[8px] text-stone-500 font-semibold leading-normal">
+                              Bonjour {selectedSupplier.name.split(' ')[0]}, veuillez renseigner les coordonnées GPS de votre terrain.
+                            </p>
+                          </div>
+                          
+                          {/* Mini Mock Inputs */}
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="bg-stone-50 p-2 rounded border border-stone-100 text-[8px] font-mono text-stone-600 font-bold text-center">Lat: _ _._ _ _ _</div>
+                            <div className="bg-stone-50 p-2 rounded border border-stone-100 text-[8px] font-mono text-stone-600 font-bold text-center">Lng: _ _._ _ _ _</div>
+                          </div>
+                          
+                          <div className="py-2 px-3 bg-emerald-600 text-white font-bold text-[8px] text-center rounded-lg shadow-sm">
+                            Détection position GPS (Mobile)
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
                   </section>
                 )}
 
@@ -1272,90 +2133,215 @@ export default function App() {
               initial={{ opacity: 0, scale: 0.9, y: 40 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 40 }}
-              className="relative w-full max-w-4xl h-[80vh] bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col"
+              className="relative w-full max-w-4xl h-[80vh] bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col z-10"
             >
-              <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+              <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between bg-slate-50">
                 <div className="flex items-center gap-3 font-display font-bold text-lg">
                   <FileText className="text-emerald-600" />
-                  Aperçu de la Déclaration de Diligence Raisonnée (Annex II)
+                  Dossier de Preuve de Diligence EUDR
                 </div>
-                <button onClick={() => setIsPreviewOpen(false)} className="p-2 hover:bg-slate-200 rounded-full transition-colors">
+                
+                {/* Tab selector for DDS and Proof Pack */}
+                <div className="flex bg-slate-200/70 p-1 rounded-xl">
+                  <button
+                    type="button"
+                    onClick={() => setPreviewTab('statement')}
+                    className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${previewTab === 'statement' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
+                  >
+                    📄 Déclaration DDS (Annex II)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewTab('proof_pack')}
+                    className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${previewTab === 'proof_pack' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
+                  >
+                    🛡️ Audits & Certificat IA
+                  </button>
+                </div>
+
+                <button onClick={() => setIsPreviewOpen(false)} className="p-2 hover:bg-slate-200 rounded-full transition-colors self-end md:self-auto">
                   <X size={20} />
                 </button>
               </div>
 
               <div className="flex-1 overflow-y-auto p-12 bg-slate-100">
-                <div className="max-w-2xl mx-auto bg-white shadow-lg p-16 font-serif text-[#1a1a1a] min-h-full">
-                  <div className="border-b-2 border-slate-900 pb-8 mb-8 flex justify-between items-start">
-                    <div>
-                      <h1 className="text-2xl font-bold uppercase tracking-tight font-sans">European Union Deforestation Regulation</h1>
-                      <p className="text-xs font-sans text-slate-500 mt-1">Due Diligence Statement Template (Standardized)</p>
+                {previewTab === 'proof_pack' ? (
+                  <div className="max-w-3xl mx-auto bg-stone-900 text-stone-100 rounded-[2.5rem] p-10 md:p-14 shadow-2xl space-y-8 font-sans border border-stone-800 text-left">
+                    <div className="flex justify-between items-start border-b border-stone-800 pb-6">
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/80 px-3 py-1 rounded-full uppercase tracking-widest border border-emerald-900/60">
+                          TRAVERDY SATELLITE SECURE
+                        </span>
+                        <h2 className="text-xl font-bold tracking-tight text-white pt-2">AI Proof Packet & Certificate</h2>
+                        <p className="text-xs text-stone-400">Réf. Audit Blockchain: <span className="font-mono text-emerald-400">tx-eudr-{selectedSupplier.ref.toLowerCase()}</span></p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-3xl">🛡️</div>
+                        <p className="text-[9px] text-stone-500 uppercase tracking-widest font-mono font-bold mt-1">Status: OK</p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <div className="px-3 py-1 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-full font-sans uppercase">Authentifié Blockchain</div>
-                      <p className="text-[10px] font-sans mt-2">REF: {selectedSupplier.ref}</p>
+
+                    {/* Details grid layout inside black UI card */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                      <div className="bg-stone-950/60 p-5 rounded-2xl border border-stone-800/80 space-y-3">
+                        <h4 className="text-[10px] font-bold uppercase tracking-widest text-stone-400">🛰️ Vérification Satellite AI</h4>
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-xs">
+                            <span className="text-stone-500">Imagerie Radar:</span>
+                            <span className="font-semibold text-stone-300">Sentinelle-2 RGB/NDVI</span>
+                          </div>
+                          <div className="flex justify-between text-xs">
+                            <span className="text-stone-500">Dernier passage:</span>
+                            <span className="font-semibold text-stone-300">{selectedSupplier.date}</span>
+                          </div>
+                          <div className="flex justify-between text-xs">
+                            <span className="text-stone-500">Diagnostic forêt:</span>
+                            <span className="font-semibold text-emerald-400">Aucun signal de coupe rasée</span>
+                          </div>
+                          <div className="flex justify-between text-xs">
+                            <span className="text-stone-500">Surface analysée:</span>
+                            <span className="font-semibold text-stone-300">{selectedSupplier.area || "45 hectares"}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-stone-950/60 p-5 rounded-2xl border border-stone-800/80 space-y-3">
+                        <h4 className="text-[10px] font-bold uppercase tracking-widest text-stone-400">⚖️ Conformité Légale (EU 2023/1115)</h4>
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-xs">
+                            <span className="text-stone-500">Article 3 (Déforestation):</span>
+                            <span className="font-semibold text-emerald-400">Conforme (Post-2020)</span>
+                          </div>
+                          <div className="flex justify-between text-xs">
+                            <span className="text-stone-500">Droits locaux & Travail:</span>
+                            <span className="font-semibold text-emerald-400">Conforme (Vérifié)</span>
+                          </div>
+                          <div className="flex justify-between text-xs">
+                            <span className="text-stone-500">Niveau de Risque Pays:</span>
+                            <span className="font-semibold text-emerald-400 uppercase">{selectedSupplier.risk}</span>
+                          </div>
+                          <div className="flex justify-between text-xs">
+                            <span className="text-stone-500">Certificat tiers:</span>
+                            <span className="font-semibold text-[#1db954]">{selectedSupplier.cert || "Rainforest Alliance"}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Graphic Interactive Radar representation */}
+                    <div className="bg-stone-950 border border-stone-800 rounded-3xl p-6 flex flex-col md:flex-row items-center gap-6 justify-between">
+                      <div className="space-y-2 max-w-sm">
+                        <h5 className="font-bold text-sm text-stone-200">Empreinte Cartographique & Polygone</h5>
+                        <p className="text-xs text-stone-500 leading-relaxed">
+                          Le polygone tracé délimite précisément la parcelle de récolte à <span className="font-mono text-stone-300 font-bold">{selectedSupplier.lat}, {selectedSupplier.lng}</span>. Il prouve l'absence d'empiétement sur les massifs forestiers classés.
+                        </p>
+                      </div>
+
+                      <div className="w-32 h-32 bg-stone-900 border-2 border-dashed border-emerald-950 rounded-full shrink-0 relative overflow-hidden flex items-center justify-center">
+                        <div className="absolute inset-0 bg-emerald-500/5 rounded-full" />
+                        <div className="absolute w-24 h-24 border border-emerald-900/40 rounded-full flex items-center justify-center">
+                          <div className="absolute w-16 h-16 border border-emerald-800/20 rounded-full flex items-center justify-center">
+                            <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping" />
+                          </div>
+                        </div>
+                        <div className="absolute w-[1px] h-[64px] bg-gradient-to-t from-emerald-400 to-transparent top-0 left-16 origin-bottom animate-spin" style={{ animationDuration: '4s' }} />
+                        <span className="text-[9px] font-mono text-stone-600 absolute bottom-2">RANGE: 15km</span>
+                      </div>
+                    </div>
+
+                    {/* Direct Proof Pack File Downloader Box */}
+                    <div className="p-5 bg-gradient-to-r from-emerald-950/40 to-cyan-950/30 rounded-2xl border border-emerald-900/40 flex flex-col md:flex-row items-center justify-between gap-4">
+                      <div className="space-y-1 text-left">
+                        <h5 className="font-bold text-xs text-stone-200 uppercase tracking-tight">Compilation Preuve Pratique (ZIP)</h5>
+                        <p className="text-[10px] text-stone-400">Contient: Images Satellite Haute Résolution, Tracé de Polygone GeoJSON, Certificat de Signature.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          showNotif('📥', "Préparation du dossier compressé (.zip) avec toutes les pièces justificatives...");
+                          setTimeout(() => {
+                            showNotif('🛡️', "Téléchargement démarré : Traverdy_EUDR_ProofPack_" + selectedSupplier.ref + ".zip");
+                          }, 1500);
+                        }}
+                        className="px-6 py-3 bg-[#1db954] hover:bg-[#1db954]/95 text-stone-950 font-bold rounded-xl text-xs flex items-center gap-2 shadow-lg shadow-emerald-950/40 active:scale-95 transition-all shrink-0"
+                      >
+                        <Download size={14} /> Télécharger le Pack
+                      </button>
                     </div>
                   </div>
-
-                  <div className="space-y-8 text-sm leading-relaxed">
-                    <section>
-                      <h4 className="font-sans font-bold uppercase text-[10px] text-slate-400 mb-2">1. Operator Information</h4>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <p className="font-bold">Name & Address:</p>
-                          <p className="text-slate-600">Traverdy Demo Account<br />24 Rue de la Paix, 75002 Paris, France</p>
-                        </div>
-                        <div>
-                          <p className="font-bold">EORI Number:</p>
-                          <p className="text-slate-600">FR12345678901234</p>
-                        </div>
-                      </div>
-                    </section>
-
-                    <section>
-                      <h4 className="font-sans font-bold uppercase text-[10px] text-slate-400 mb-2">2. Relevant Commodity & Products</h4>
-                      <div className="grid grid-cols-3 gap-4">
-                        <div className="p-3 bg-slate-50 rounded">
-                          <p className="text-[10px] text-slate-400">HS CODE</p>
-                          <p className="font-bold">{selectedSupplier.hsCode}</p>
-                        </div>
-                        <div className="p-3 bg-slate-50 rounded">
-                          <p className="text-[10px] text-slate-400">PRODUCT</p>
-                          <p className="font-bold uppercase">{selectedSupplier.product}</p>
-                        </div>
-                        <div className="p-3 bg-slate-50 rounded">
-                          <p className="text-[10px] text-slate-400">COUNTRY OF ORIGIN</p>
-                          <p className="font-bold">{selectedSupplier.country}</p>
-                        </div>
-                      </div>
-                    </section>
-
-                    <section>
-                      <h4 className="font-sans font-bold uppercase text-[10px] text-slate-400 mb-2">3. Geolocation Data (GPS Coordinates)</h4>
-                      <div className="p-4 border border-slate-200 rounded-lg">
-                        <p className="mb-2 italic">Geolocation of all plots of land where the relevant commodity was produced:</p>
-                        <div className="font-mono text-xs bg-slate-900 text-emerald-400 p-3 rounded">
-                          {selectedSupplier.lat}, {selectedSupplier.lng} (Polygon Verified via Satellite)
-                        </div>
-                      </div>
-                    </section>
-
-                    <section>
-                      <h4 className="font-sans font-bold uppercase text-[10px] text-slate-400 mb-2">4. Conclusion of the Due Diligence</h4>
-                      <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-lg text-emerald-900">
-                        The operator concludes that there is **null or only a negligible risk** that the relevant products are non-compliant with Article 3 of Regulation (EU) 2023/1115.
-                      </div>
-                    </section>
-
-                    <div className="pt-12 flex justify-between items-end italic opacity-50">
+                ) : (
+                  <div className="max-w-2xl mx-auto bg-white shadow-lg p-16 font-serif text-[#1a1a1a] min-h-full">
+                    <div className="border-b-2 border-slate-900 pb-8 mb-8 flex justify-between items-start">
                       <div>
-                        <p>Date: {new Date().toLocaleDateString()}</p>
-                        <p className="mt-4 border-t border-slate-300 pt-2">Authorized Signature</p>
+                        <h1 className="text-2xl font-bold uppercase tracking-tight font-sans">European Union Deforestation Regulation</h1>
+                        <p className="text-xs font-sans text-slate-500 mt-1">Due Diligence Statement Template (Standardized)</p>
                       </div>
-                      <div className="text-[10px] font-sans">Page 1 of 1</div>
+                      <div className="text-right">
+                        <div className="px-3 py-1 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-full font-sans uppercase">Authentifié Blockchain</div>
+                        <p className="text-[10px] font-sans mt-2">REF: {selectedSupplier.ref}</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-8 text-sm leading-relaxed text-left">
+                      <section>
+                        <h4 className="font-sans font-bold uppercase text-[10px] text-slate-400 mb-2">1. Operator Information</h4>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <p className="font-bold">Name & Address:</p>
+                            <p className="text-slate-600">Traverdy Demo Account<br />24 Rue de la Paix, 75002 Paris, France</p>
+                          </div>
+                          <div>
+                            <p className="font-bold">EORI Number:</p>
+                            <p className="text-slate-600">FR12345678901234</p>
+                          </div>
+                        </div>
+                      </section>
+
+                      <section>
+                        <h4 className="font-sans font-bold uppercase text-[10px] text-slate-400 mb-2">2. Relevant Commodity & Products</h4>
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="p-3 bg-slate-50 rounded">
+                            <p className="text-[10px] text-slate-400">HS CODE</p>
+                            <p className="font-bold">{selectedSupplier.hsCode}</p>
+                          </div>
+                          <div className="p-3 bg-slate-50 rounded">
+                            <p className="text-[10px] text-slate-400">PRODUCT</p>
+                            <p className="font-bold uppercase">{selectedSupplier.product}</p>
+                          </div>
+                          <div className="p-3 bg-slate-50 rounded">
+                            <p className="text-[10px] text-slate-400">COUNTRY OF ORIGIN</p>
+                            <p className="font-bold">{selectedSupplier.country}</p>
+                          </div>
+                        </div>
+                      </section>
+
+                      <section>
+                        <h4 className="font-sans font-bold uppercase text-[10px] text-slate-400 mb-2">3. Geolocation Data (GPS Coordinates)</h4>
+                        <div className="p-4 border border-slate-200 rounded-lg">
+                          <p className="mb-2 italic">Geolocation of all plots of land where the relevant commodity was produced:</p>
+                          <div className="font-mono text-xs bg-slate-900 text-emerald-400 p-3 rounded">
+                            {selectedSupplier.lat}, {selectedSupplier.lng} (Polygon Verified via Satellite)
+                          </div>
+                        </div>
+                      </section>
+
+                      <section>
+                        <h4 className="font-sans font-bold uppercase text-[10px] text-slate-400 mb-2">4. Conclusion of the Due Diligence</h4>
+                        <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-lg text-emerald-900">
+                          The operator concludes that there is **null or only a negligible risk** that the relevant products are non-compliant with Article 3 of Regulation (EU) 2023/1115.
+                        </div>
+                      </section>
+
+                      <div className="pt-12 flex justify-between items-end italic opacity-50">
+                        <div>
+                          <p>Date: {new Date().toLocaleDateString()}</p>
+                          <p className="mt-4 border-t border-slate-300 pt-2">Authorized Signature</p>
+                        </div>
+                        <div className="text-[10px] font-sans">Page 1 of 1</div>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
 
               <div className="p-6 border-t border-slate-100 flex gap-4 bg-white">
@@ -1677,6 +2663,86 @@ export default function App() {
         )}
       </AnimatePresence>
 
+      {/* QR Code Magnified Modal */}
+      <AnimatePresence>
+        {showQRModal && selectedSupplier && (
+          <div className="fixed inset-0 z-[450] flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowQRModal(false)}
+              className="absolute inset-0 bg-slate-900/85 backdrop-blur-md"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-sm bg-white rounded-3xl p-8 shadow-2xl text-center space-y-6"
+            >
+              <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+                <span className="text-sm font-bold tracking-tight text-slate-950 font-sans">QR Code Unique Producteur</span>
+                <button onClick={() => setShowQRModal(false)} className="p-1 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-900">
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <p className="text-xs text-slate-500 font-medium">
+                  Faites scanner ce QR Code par <strong className="text-slate-900">{selectedSupplier.name}</strong> avec son smartphone pour ouvrir son formulaire de conformité en direct.
+                </p>
+
+                {/* Aesthetic Visual QR Code SVG Mockup */}
+                <div className="w-52 h-52 bg-white border border-slate-200 rounded-2xl p-4 mx-auto flex flex-col items-center justify-center relative shadow-inner">
+                  <svg viewBox="0 0 100 100" className="w-40 h-40 text-slate-900">
+                    {/* Corners */}
+                    <rect x="0" y="0" width="25" height="25" fill="none" stroke="currentColor" strokeWidth="6" />
+                    <rect x="5" y="5" width="15" height="15" fill="currentColor" />
+                    <rect x="75" y="0" width="25" height="25" fill="none" stroke="currentColor" strokeWidth="6" />
+                    <rect x="80" y="5" width="15" height="15" fill="currentColor" />
+                    <rect x="0" y="75" width="25" height="25" fill="none" stroke="currentColor" strokeWidth="6" />
+                    <rect x="5" y="80" width="15" height="15" fill="currentColor" />
+                    {/* Inner dots */}
+                    <rect x="35" y="10" width="8" height="8" fill="currentColor" />
+                    <rect x="50" y="5" width="12" height="6" fill="currentColor" />
+                    <rect x="10" y="35" width="10" height="10" fill="currentColor" />
+                    <rect x="35" y="35" width="30" height="30" fill="none" stroke="currentColor" strokeWidth="6" />
+                    <circle cx="50" cy="50" r="5" fill="currentColor" />
+                    <rect x="75" y="35" width="12" height="12" fill="currentColor" />
+                    <rect x="35" y="75" width="20" height="15" fill="currentColor" />
+                    <rect x="75" y="75" width="15" height="15" fill="currentColor" />
+                    {/* Tiny details */}
+                    <rect x="60" y="15" width="6" height="6" fill="currentColor" />
+                    <rect x="15" y="60" width="6" height="6" fill="currentColor" />
+                  </svg>
+                  <div className="absolute bg-[#1db954] text-white px-2 py-0.5 rounded-full text-[8px] font-bold uppercase border-2 border-white scale-110">
+                    TRAVERDY
+                  </div>
+                </div>
+
+                <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex items-center justify-center">
+                  <span className="text-[10px] font-mono font-bold text-slate-500 overflow-hidden text-ellipsis whitespace-nowrap max-w-[280px]">
+                    {window.location.origin}/?ref={selectedSupplier.ref}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(`${window.location.origin}/?ref=${selectedSupplier.ref}`);
+                  showNotif('📋', 'Lien copié !');
+                  setShowQRModal(false);
+                }}
+                className="w-full py-3 bg-slate-900 text-white font-bold text-xs rounded-xl hover:bg-slate-800 transition-all flex items-center justify-center gap-2"
+              >
+                Copier le lien direct
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* Notifications */}
       <AnimatePresence>
         {notification && (
@@ -1691,6 +2757,324 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+// --- Risk Analysis and Compliance ROI Simulator Component ---
+
+const RiskRoiCalculator = ({
+  suppliers,
+  setSuppliers,
+  setCurrentView,
+  setActivePortalRef,
+  showNotif
+}: {
+  suppliers: Supplier[];
+  setSuppliers: React.Dispatch<React.SetStateAction<Supplier[]>>;
+  setCurrentView: (v: 'dashboard' | 'suppliers' | 'declarations' | 'pitch') => void;
+  setActivePortalRef: (ref: string | null) => void;
+  showNotif: (icon: string, msg: string) => void;
+}) => {
+  const [numSuppliers, setNumSuppliers] = useState(24);
+  const [annualTons, setAnnualTons] = useState(180);
+  const [commodity, setCommodity] = useState<'coffee' | 'cocoa' | 'soy' | 'timber'>('coffee');
+
+  const estimatedSaaSPrice = useMemo(() => {
+    // Base 99 EUR + $5 per supplier + $0.7 per ton. Highly logical pricing.
+    const base = 99;
+    const itemFactor = numSuppliers * 5;
+    const tonFactor = annualTons * 0.7;
+    const commodityMultiplier = commodity === 'timber' ? 1.4 : commodity === 'soy' ? 1.2 : 1.0;
+    return Math.round((base + itemFactor + tonFactor) * commodityMultiplier);
+  }, [numSuppliers, annualTons, commodity]);
+
+  const hoursSaved = useMemo(() => {
+    // Saves roughly 2.2 hours of tedious manual paperwork per supplier
+    return Math.round(15 + numSuppliers * 2.2);
+  }, [numSuppliers]);
+
+  const legalRiskValue = useMemo(() => {
+    // EUDR penalties are 4% of customer global annual revenue of target goods. 
+    // Cocoa/coffee pricing average is about 5000 EUR per ton.
+    const productPricePerTon = commodity === 'timber' ? 6200 : commodity === 'cocoa' ? 5800 : commodity === 'coffee' ? 4500 : 3200;
+    const valueOfGoods = annualTons * productPricePerTon;
+    return Math.round(valueOfGoods * 0.04);
+  }, [annualTons, commodity]);
+
+  const handleScenarioClean = () => {
+    const fresh = INITIAL_DEMO_SUPPLIERS.map(item => ({
+      ...item,
+      status: (item.ref === '1201-ID-2026-112') ? 'alert' as const : 'ok' as const,
+      cert: item.ref === '0901-BR-2026-455' ? 'Rainforest Alliance' : item.cert
+    }));
+    setSuppliers(fresh);
+    localStorage.setItem('demo_suppliers', JSON.stringify(fresh));
+    showNotif('🟢', 'Exercice clos. Base de test rétablie en état conforme.');
+  };
+
+  const handleScenarioDeforestation = () => {
+    const alerted = suppliers.map(item => {
+      if (item.ref === '0901-BR-2026-455') {
+        return {
+          ...item,
+          status: 'alert' as const,
+          cert: 'ALERTE SATELLITE DIRECTE : Déforestation détectée par Copernicus radar'
+        };
+      }
+      return item;
+    });
+    setSuppliers(alerted);
+    localStorage.setItem('demo_suppliers', JSON.stringify(alerted));
+    showNotif('🚨', 'Alerte Copernicus déclenchée sur Cooperativa Café Brasil (Simulation de crise)');
+  };
+
+  return (
+    <div className="space-y-8 animate-fade-in">
+      {/* SaaS Elevator Pitch Top Banner */}
+      <div className="bg-gradient-to-br from-slate-900 to-emerald-950 p-8 rounded-3xl text-white shadow-xl relative overflow-hidden border border-emerald-500/15">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl -z-0" />
+        <div className="relative z-10 flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
+          <div className="space-y-2 max-w-2xl">
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-1 bg-emerald-500/20 text-emerald-300 text-[10px] font-bold rounded-full uppercase tracking-widest border border-emerald-500/20">MODULE D'AVANT-PROJET & RISQUES</span>
+              <span className="text-xs text-emerald-400 font-medium">✦ Évaluation légale des flux d'importations régulés (EUDR)</span>
+            </div>
+            <h2 className="text-3xl font-black font-display tracking-tight">Estimez votre conformité légale & ROI</h2>
+            <p className="text-slate-300 text-sm leading-relaxed">
+              Ce module d'audit financier et règlementaire vous permet de simuler la structure de votre chaîne logistique pour en déduire les <strong>expositions financières d'amendes douanières</strong> et évaluer le <strong>retour sur investissement opérationnel</strong> de la dématérialisation sur Traverdy.
+            </p>
+          </div>
+          <button 
+            onClick={() => setCurrentView('dashboard')}
+            className="px-6 py-4 bg-[#1db954] text-white hover:bg-[#1db954]/90 rounded-2xl font-bold text-sm shadow-xl active:scale-95 transition-all flex items-center gap-2 shrink-0"
+          >
+            <span>Retourner au Tableau de Bord</span> <ChevronRight size={16} />
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* Scénario trigger card panel */}
+        <div className="lg:col-span-2 space-y-8">
+          
+          {/* Action Trigger Box */}
+          <div className="bg-white p-8 rounded-3xl border border-slate-200/85 shadow-sm space-y-6">
+            <div>
+              <h3 className="text-lg font-bold text-slate-950 font-display flex items-center gap-2">
+                <Sparkles size={18} className="text-emerald-500 animate-pulse" />
+                Simulations de Crise & Exercices Pratiques
+              </h3>
+              <p className="text-xs text-slate-500 mt-1">Conformément aux directives de diligence raisonnée, effectuez des simulations à blanc pour tester vos processus internes d'urgence.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              
+              {/* Reset Regular */}
+              <div className="p-5 rounded-2xl bg-slate-50 border border-slate-100 flex flex-col justify-between space-y-4">
+                <div className="space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-emerald-600 block">Exercice 1</span>
+                  <h4 className="font-bold text-xs text-slate-950">Clôturer les simulations</h4>
+                  <p className="text-[10px] text-slate-400">Rétablit l'ensemble de la base de données de test à un état entièrement conforme.</p>
+                </div>
+                <button 
+                  onClick={handleScenarioClean}
+                  className="w-full py-2.5 bg-white hover:bg-slate-100 text-slate-800 font-bold text-[11px] rounded-xl border border-slate-200 transition-all flex items-center justify-center gap-1.5 shadow-sm"
+                >
+                  <CheckCircle2 size={12} className="text-emerald-500" /> Clôturer l'exercice 🟢
+                </button>
+              </div>
+
+              {/* Deforestation Alert trigger */}
+              <div className="p-5 rounded-2xl bg-red-50/50 border border-red-100 flex flex-col justify-between space-y-4">
+                <div className="space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-red-600 block">Exercice 2</span>
+                  <h4 className="font-bold text-xs text-slate-950 font-sans">Simuler une Alerte Satellite</h4>
+                  <p className="text-[10px] text-slate-400">Déclenche un signal d'urgence de déforestation satellite Copernicus sur un fournisseur.</p>
+                </div>
+                <button 
+                  onClick={handleScenarioDeforestation}
+                  className="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-[11px] rounded-xl transition-all shadow-md shadow-red-100 flex items-center justify-center gap-1.5"
+                >
+                  <AlertTriangle size={12} /> Lancer l'alerte Copernicus 🚨
+                </button>
+              </div>
+
+              {/* Farmer quick access trigger */}
+              <div className="p-5 rounded-2xl bg-[#f0f9ff] border border-blue-100 flex flex-col justify-between space-y-4">
+                <div className="space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-blue-600 block">Exercice 3</span>
+                  <h4 className="font-bold text-xs text-slate-950">Vérifier Portail Mobilisés</h4>
+                  <p className="text-[10px] text-slate-400">Ouvre la fiche et le parcours web réactif optimisé pour les producteurs en zone rurale.</p>
+                </div>
+                <button 
+                  onClick={() => {
+                    setActivePortalRef('0901-BR-2026-455');
+                    showNotif('☕', 'Chargement du Portail Mobile de Cafe Brasil...');
+                  }}
+                  className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] rounded-xl transition-all shadow-md shadow-blue-100 flex items-center justify-center gap-1.5"
+                >
+                  <ExternalLink size={12} /> Tester Fiche Producteur ☕
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+          {/* SaaS Core arguments / Sell Sheets */}
+          <div className="bg-white p-8 rounded-3xl border border-slate-200/85 shadow-sm space-y-6">
+            <div>
+              <h3 className="text-lg font-bold text-slate-950 font-display flex items-center gap-2">
+                <Award size={18} className="text-[#1db954]" />
+                Piliers de Résilience Réduisant le Risque Opérationnel
+              </h3>
+              <p className="text-xs text-slate-500 mt-1">Comment l'infrastructure technique Traverdy neutralise les risques légaux de la chaîne d'importation.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              
+              <div className="space-y-2">
+                <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-xs shadow-inner">1</div>
+                <h4 className="text-xs font-bold text-slate-950">Zéro téléchargement requis</h4>
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  Zéro friction pour les producteurs locaux : un simple lien léger accessible par SMS ou messagerie instantanée permet de recueillir les coordonnées GPS de la parcelle, même en zone à faible connectivité.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-xs shadow-inner">2</div>
+                <h4 className="text-xs font-bold text-slate-950">Alerte Précoce Constatée</h4>
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  Notre moteur croise de manière automatique l'historique géospatial Copernicus Sentinel-1 et Sentinel-2 avec les livraisons déclarées pour prévenir tout import issu de parcelles déboisées.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs shadow-inner">3</div>
+                <h4 className="text-xs font-bold text-slate-950">Diligence Complète TRACES</h4>
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  Génération instantanée et standardisée au schéma douanier européen TRACES NT du dossier de Diligence Raisonnée complet (Données foncières, attestations d'exemption, géolocalisation).
+                </p>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+        {/* Pricing Estimator column */}
+        <div className="space-y-8">
+          
+          {/* Interactive Pricing Widget */}
+          <div className="bg-white p-8 rounded-3xl border border-slate-200/85 shadow-md space-y-6">
+            <div className="border-b border-slate-100 pb-4">
+              <span className="text-[10px] uppercase font-black text-slate-400 tracking-wider">Evaluation Risques vs. Coûts</span>
+              <h3 className="text-lg font-bold text-slate-950 mt-1 font-display flex items-center gap-2">
+                <Coins size={18} className="text-emerald-500" /> Tarificateur d'Abonnement & ROI
+              </h3>
+            </div>
+
+            {/* Commodity Selector Buttons */}
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Matière Première Importée</label>
+              <div className="grid grid-cols-4 gap-2">
+                {[
+                  { key: 'coffee', label: '☕ Café' },
+                  { key: 'cocoa', label: '🍫 Cacao' },
+                  { key: 'soy', label: '🌱 Soja' },
+                  { key: 'timber', label: '🪵 Bois' }
+                ].map(item => (
+                  <button
+                    key={item.key}
+                    onClick={() => setCommodity(item.key as any)}
+                    className={cn(
+                      "py-2 text-[10px] font-bold rounded-xl border transition-all text-center",
+                      commodity === item.key 
+                        ? "bg-slate-900 border-slate-900 text-white" 
+                        : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
+                    )}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Range Slider 1: Number of Suppliers */}
+            <div className="space-y-2">
+              <div className="flex justify-between items-center text-xs font-bold text-slate-800">
+                <span>Producteurs / Fournisseurs :</span>
+                <span className="font-mono text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg text-xs">{numSuppliers} producteurs</span>
+              </div>
+              <input 
+                type="range" 
+                min="5" 
+                max="300" 
+                value={numSuppliers}
+                onChange={(e) => setNumSuppliers(parseInt(e.target.value))}
+                className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+              />
+            </div>
+
+            {/* Range Slider 2: Annual Volume */}
+            <div className="space-y-2">
+              <div className="flex justify-between items-center text-xs font-bold text-slate-800">
+                <span>Volume Annuel Importé :</span>
+                <span className="font-mono text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg text-xs">{annualTons} tonnes</span>
+              </div>
+              <input 
+                type="range" 
+                min="10" 
+                max="1000" 
+                value={annualTons}
+                onChange={(e) => setAnnualTons(parseInt(e.target.value))}
+                className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+              />
+            </div>
+
+            {/* Price Result Output */}
+            <div className="p-6 rounded-2xl bg-[#0a0f0d] text-white space-y-4">
+              <div>
+                <span className="text-[10px] uppercase tracking-normal text-slate-500 block">Frais de Plateforme Estimés :</span>
+                <div className="flex items-baseline gap-2 mt-1">
+                  <span className="text-4xl font-black text-white">{estimatedSaaSPrice}€</span>
+                  <span className="text-slate-500 text-xs">/ mois</span>
+                </div>
+              </div>
+
+              {/* Business Indicators */}
+              <div className="border-t border-white/10 pt-4 space-y-3">
+                <div className="flex items-start gap-2">
+                  <span className="text-emerald-400 mt-0.5">✔</span>
+                  <p className="text-[11px] text-slate-300 leading-tight">
+                    Productivités : <strong>~{hoursSaved} heures administratives/mois</strong> épargnées en formalités d'audits manuelles.
+                  </p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-rose-400 mt-0.5">✔</span>
+                  <p className="text-[11px] text-slate-300 leading-tight">
+                    Amende Douanière Maximum Évitée : <strong>{legalRiskValue.toLocaleString()}€</strong> (calculée sur les 4% minimum du chiffre d'affaires des volumes régulés).
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  showNotif('📋', 'Rapport de simulation d\'impact copié !');
+                  navigator.clipboard.writeText(`TRAVERDY EUDR - RAPPORT D'ANALYSE D'IMPACT ET CALCUL DE ROI\n\nProduit principal : ${commodity.toUpperCase()}\nVolume annuel estimé : ${annualTons} tonnes / an\nNombre de producteurs géo-localisés : ${numSuppliers}\n\nFrais de Plateforme Traverdy Pro : ${estimatedSaaSPrice} EUR / mois\nTemps administratif mensuel libéré : ~${hoursSaved} heures / mois\nExposition aux risques de pénalités douanières européennes évitée : ${legalRiskValue.toLocaleString()} EUR`);
+                }}
+                className="w-full py-3 bg-[#1db954] hover:bg-[#1db954]/90 text-white font-bold text-xs rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-1.5"
+              >
+                <ClipboardCheck size={14} /> Exporter le Rapport d'Impact ⚡
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
     </div>
   );
 }

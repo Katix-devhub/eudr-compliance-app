@@ -2,7 +2,6 @@ import express from "express";
 import path from "path";
 import cors from "cors";
 import dotenv from "dotenv";
-import { createServer as createViteServer } from "vite";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 dotenv.config();
@@ -12,6 +11,14 @@ const PORT = 3000;
 
 app.use(cors());
 app.use(express.json());
+
+// Adjust routing for Netlify serverless execution
+app.use((req, res, next) => {
+  if (req.url.startsWith("/.netlify/functions/api")) {
+    req.url = req.url.replace("/.netlify/functions/api", "/api");
+  }
+  next();
+});
 
 // --- API Routes ---
 
@@ -52,28 +59,52 @@ app.post("/api/docusign/create-envelope", async (req, res) => {
 });
 
 // --- Middleware for Production / Dev ---
-const isNetlify = process.env.NETLIFY || process.env.CONTEXT === "production";
+import fs from "fs";
 
-if (!isNetlify) {
-  if (process.env.NODE_ENV === "production") {
-    const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath));
-    app.get("*", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
-    });
-  } else {
-    // Vite middleware for development
-    (async () => {
+const distPath = path.join(process.cwd(), "dist");
+const hasDist = fs.existsSync(distPath) && fs.existsSync(path.join(distPath, "index.html"));
+
+if (hasDist) {
+  // Production Mode: Serve built static files
+  console.log("Serving static files from:", distPath);
+  app.use(express.static(distPath));
+  
+  // Explicit route for the root & any non-API URL to serve the React index.html
+  app.get("*", (req, res, next) => {
+    if (req.path.startsWith("/api/")) {
+      return next();
+    }
+    res.sendFile(path.join(distPath, "index.html"));
+  });
+
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Production server running on port ${PORT}`);
+  });
+} else {
+  // Vite middleware for development
+  (async () => {
+    try {
+      const { createServer: createViteServer } = await import("vite");
       const vite = await createViteServer({
         server: { middlewareMode: true },
         appType: "spa",
       });
       app.use(vite.middlewares);
       app.listen(PORT, "0.0.0.0", () => {
-        console.log(`Server running on http://localhost:${PORT}`);
+        console.log(`Development server running on http://localhost:${PORT}`);
       });
-    })();
-  }
+    } catch (err) {
+      console.warn("Failed to load Vite dev server:", err);
+      // Fallback in case dist is somehow missing but we are forced
+      app.use(express.static(distPath));
+      app.get("*", (req, res) => {
+        res.sendFile(path.join(distPath, "index.html"));
+      });
+      app.listen(PORT, "0.0.0.0", () => {
+        console.log(`Fallback server running on port ${PORT}`);
+      });
+    }
+  })();
 }
 
 export default app;
