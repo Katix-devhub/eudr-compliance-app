@@ -7,7 +7,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 dotenv.config();
 
 const app = express();
-const PORT = 3000;
+const PORT = Number(process.env.PORT) || 3000;
 
 app.use(cors());
 app.use(express.json());
@@ -64,6 +64,8 @@ import fs from "fs";
 const distPath = path.join(process.cwd(), "dist");
 const hasDist = fs.existsSync(distPath) && fs.existsSync(path.join(distPath, "index.html"));
 
+const isServerless = process.env.NETLIFY === "true" || !!process.env.LAMBDA_TASK_ROOT;
+
 if (hasDist) {
   // Production Mode: Serve built static files
   console.log("Serving static files from:", distPath);
@@ -77,34 +79,42 @@ if (hasDist) {
     res.sendFile(path.join(distPath, "index.html"));
   });
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Production server running on port ${PORT}`);
-  });
+  if (!isServerless) {
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`Production server running on port ${PORT}`);
+    });
+  } else {
+    console.log("Netlify serverless runtime detected: skipping production app.listen");
+  }
 } else {
-  // Vite middleware for development
-  (async () => {
-    try {
-      const { createServer: createViteServer } = await import("vite");
-      const vite = await createViteServer({
-        server: { middlewareMode: true },
-        appType: "spa",
-      });
-      app.use(vite.middlewares);
-      app.listen(PORT, "0.0.0.0", () => {
-        console.log(`Development server running on http://localhost:${PORT}`);
-      });
-    } catch (err) {
-      console.warn("Failed to load Vite dev server:", err);
-      // Fallback in case dist is somehow missing but we are forced
-      app.use(express.static(distPath));
-      app.get("*", (req, res) => {
-        res.sendFile(path.join(distPath, "index.html"));
-      });
-      app.listen(PORT, "0.0.0.0", () => {
-        console.log(`Fallback server running on port ${PORT}`);
-      });
-    }
-  })();
+  if (!isServerless) {
+    // Vite middleware for development
+    (async () => {
+      try {
+        const { createServer: createViteServer } = await import("vite");
+        const vite = await createViteServer({
+          server: { middlewareMode: true },
+          appType: "spa",
+        });
+        app.use(vite.middlewares);
+        app.listen(PORT, "0.0.0.0", () => {
+          console.log(`Development server running on http://localhost:${PORT}`);
+        });
+      } catch (err) {
+        console.warn("Failed to load Vite dev server:", err);
+        // Fallback in case dist is somehow missing but we are forced
+        app.use(express.static(distPath));
+        app.get("*", (req, res) => {
+          res.sendFile(path.join(distPath, "index.html"));
+        });
+        app.listen(PORT, "0.0.0.0", () => {
+          console.log(`Fallback server running on port ${PORT}`);
+        });
+      }
+    })();
+  } else {
+    console.log("Netlify serverless runtime detected: skipping development app.listen");
+  }
 }
 
 export default app;

@@ -139,13 +139,17 @@ const Sidebar = ({
   onOpenBilling, 
   trialDaysRemaining,
   currentView,
-  setCurrentView 
+  setCurrentView,
+  appLang,
+  onChangeAppLang
 }: { 
   onLogout: () => void; 
   onOpenBilling: () => void; 
   trialDaysRemaining: number;
   currentView: 'dashboard' | 'suppliers' | 'declarations' | 'pitch';
   setCurrentView: (v: 'dashboard' | 'suppliers' | 'declarations' | 'pitch') => void;
+  appLang: 'FR' | 'EN';
+  onChangeAppLang: (lang: 'FR' | 'EN') => void;
 }) => (
   <div className="fixed inset-y-0 left-0 w-64 bg-[#0a0f0d] text-slate-400 flex flex-col z-50">
     <div className="p-6 border-b border-white/5 flex items-center justify-between">
@@ -156,40 +160,66 @@ const Sidebar = ({
       <span className="px-2 py-0.5 rounded-full text-[8px] font-black bg-emerald-500/25 text-emerald-400 border border-emerald-500/20 uppercase">PRO</span>
     </div>
     
-    <nav className="flex-1 px-4 py-6 space-y-1">
+    <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
 
       <NavItem 
         icon={<LayoutDashboard size={18} />} 
-        label="Tableau de bord" 
+        label={appLang === 'FR' ? "Tableau de bord" : "Dashboard"} 
         active={currentView === 'dashboard'} 
         onClick={() => setCurrentView('dashboard')}
       />
       <NavItem 
         icon={<Factory size={18} />} 
-        label="Fournisseurs" 
+        label={appLang === 'FR' ? "Fournisseurs" : "Suppliers"} 
         active={currentView === 'suppliers'}
         onClick={() => setCurrentView('suppliers')}
       />
       <NavItem 
         icon={<ClipboardCheck size={18} />} 
-        label="Déclarations EUDR" 
+        label={appLang === 'FR' ? "Déclarations EUDR" : "EUDR Statements"} 
         active={currentView === 'declarations'}
         onClick={() => setCurrentView('declarations')}
       />
       <NavItem 
         icon={<Coins size={18} />} 
-        label="Simulateur Risques & ROI" 
+        label={appLang === 'FR' ? "Simulateur Risques & ROI" : "Risk & ROI Simulator"} 
         active={currentView === 'pitch'} 
         onClick={() => setCurrentView('pitch')}
       />
-      <NavItem icon={<Send size={18} />} label="Relances auto" />
-      <NavItem icon={<Folder size={18} />} label="Documents" />
+      <NavItem icon={<Send size={18} />} label={appLang === 'FR' ? "Relances auto" : "Auto Reminders"} />
+      <NavItem icon={<Folder size={18} />} label={appLang === 'FR' ? "Documents" : "Documents"} />
       <NavItem 
         icon={<CheckCircle2 size={18} className="text-[#1db954]" />} 
-        label="Mon Forfait Pro" 
+        label={appLang === 'FR' ? "Mon Forfait Pro" : "My Pro Plan"} 
         onClick={onOpenBilling}
       />
-      <div className="pt-4 pb-2 px-4 text-[10px] uppercase font-bold tracking-widest text-slate-600">Données Officielles</div>
+      
+      <div className="pt-4 pb-1.5 px-4 text-[10px] uppercase font-bold tracking-widest text-slate-600">
+        {appLang === 'FR' ? "Choix de Langue" : "Language Preferences"}
+      </div>
+      <div className="px-4 py-1 flex items-center justify-between mb-2">
+        <span className="text-[11px] font-medium text-slate-500">
+          {appLang === 'FR' ? "Interface" : "UI Language"}
+        </span>
+        <div className="flex bg-white/5 rounded-lg p-0.5 border border-white/5 shrink-0">
+          <button 
+            onClick={() => onChangeAppLang('FR')}
+            className={`px-2 py-0.5 text-[9px] font-black rounded transition-all cursor-pointer ${appLang === 'FR' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'}`}
+          >
+            FR
+          </button>
+          <button 
+            onClick={() => onChangeAppLang('EN')}
+            className={`px-2 py-0.5 text-[9px] font-black rounded transition-all cursor-pointer ${appLang === 'EN' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'}`}
+          >
+            EN
+          </button>
+        </div>
+      </div>
+
+      <div className="pt-2 pb-2 px-4 text-[10px] uppercase font-bold tracking-widest text-slate-600">
+        {appLang === 'FR' ? "Données Officielles" : "Official Registries"}
+      </div>
       {OFFICIAL_REGISTRIES.map(reg => (
         <a key={reg.name} href={reg.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-4 py-2 text-xs hover:text-white transition-colors">
           <Globe size={14} />
@@ -204,17 +234,25 @@ const Sidebar = ({
       <div className="mt-4 px-4 py-3 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
         <div className="flex items-center gap-2 mb-1">
           <div className="w-1.5 h-1.5 bg-[#1db954] rounded-full animate-pulse" />
-          <span className="text-[10px] font-bold text-[#1db954] uppercase tracking-widest">Version d'essai</span>
+          <span className="text-[10px] font-bold text-[#1db954] uppercase tracking-widest">
+            {appLang === 'FR' ? "Version d'essai" : "Free Trial"}
+          </span>
         </div>
-        <p className="text-[10px] text-slate-300">{trialDaysRemaining} jours restants avant le passage au plan Pro.</p>
+        <p className="text-[10px] text-slate-300">
+          {appLang === 'FR' 
+            ? `${trialDaysRemaining} jours restants avant le passage au plan Pro.` 
+            : `${trialDaysRemaining} days remaining before Pro upgrade.`}
+        </p>
       </div>
       
       <div className="mt-auto p-4">
         <div className="bg-gradient-to-br from-emerald-500/20 to-blue-500/20 rounded-2xl p-4 border border-white/10">
-          <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest mb-2">Statut de Confiance</p>
+          <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest mb-2">
+            {appLang === 'FR' ? "Statut de Confiance" : "Trust Status"}
+          </p>
           <div className="flex items-center gap-2">
             <CheckCircle2 size={12} className="text-emerald-500" />
-            <span className="text-[11px] text-white font-medium">Certification ISO 27001</span>
+            <span className="text-[11px] text-white font-medium">ISO 27001 Certified</span>
           </div>
           <div className="flex items-center gap-2 mt-1">
             <CheckCircle2 size={12} className="text-emerald-500" />
@@ -223,7 +261,7 @@ const Sidebar = ({
         </div>
       </div>
 
-      <NavItem icon={<Settings size={18} />} label="Paramètres" />
+      <NavItem icon={<Settings size={18} />} label={appLang === 'FR' ? "Paramètres" : "Settings"} />
     </nav>
 
     <div className="p-4 border-t border-white/5 space-y-2">
@@ -232,7 +270,7 @@ const Sidebar = ({
         className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-red-500/10 hover:text-red-400 transition-all cursor-pointer"
       >
         <LogOut size={18} />
-        <span>Déconnexion</span>
+        <span>{appLang === 'FR' ? "Déconnexion" : "Log out"}</span>
       </button>
     </div>
   </div>
@@ -695,6 +733,142 @@ const PORTAL_LANG_DICTIONARY: Record<string, {
   }
 };
 
+// --- Landing Page Multi-language Dictionary ---
+const LANDING_DICTS = {
+  FR: {
+    navFeatures: "Fonctionnalités",
+    navCompliance: "Réglementation",
+    navPortal: "Portail Producteur",
+    sandboxBtn: "Mode Sandbox ⚡",
+    loginBtn: "Se connecter / S'enregistrer",
+    badgeEudr: "Conforme EUDR",
+    tagline: "🇪🇺 Règlement Européen sur la Déforestation (EUDR)",
+    heroTitle: "Garantissez la conformité de vos importations et l'accès au marché européen",
+    heroSubtitle: "La plateforme de diligence raisonnée tout-en-un. Collectez les coordonnées GPS et parcelles, vérifiez l'historique forestier par imagerie satellite et générez vos déclarations réglementaires obligatoires de manière automatisée.",
+    demoBtn: "Démo Sandbox Instantanée ⚡",
+    createProBtn: "Créer mon compte Pro",
+    bullet1: "Sans engagement",
+    bullet2: "Accès direct sans CB",
+    bullet3: "Démonstration 100% active",
+    previewTitle: "Traverdy Pro",
+    previewStatus: "Aperçu en direct",
+    previewCompliance: "Indice de conformité",
+    previewCompliant: "↑ Conforme",
+    previewAudited: "Coopératives auditées",
+    previewAuditedSub: "Diligence raisonnée automatisée",
+    previewSatellite: "Dernier rapport satellite",
+    previewNoRisk: "Aucun risque détecté",
+    previewSentinel: "✓ Sentinel L2A Validé",
+    previewMapTitle: "Cartographie dynamique des matières premières (Café, Cacao)",
+    previewMapDesc: "Les polygones de parcelles sont superposés en temps réel avec le référentiel d'alertes déforestation européen et l'indice Copernicus.",
+    featuresTitleBadge: "Fonctionnalités Clés",
+    featuresTitle: "Une suite technologique complète et souveraine",
+    featuresDesc: "Traverdy automatise l'ensemble de la chaîne de gouvernance EUDR, de la collecte d'informations terrain auprès des producteurs jusqu'au dossier de preuves douanier.",
+    feature1Title: "Géolocalisation précise",
+    feature1Desc: "Collecte native des coordonnées GPS (points et polygones) via notre portail producteur optimisé pour mobiles sans installation d'application.",
+    feature2Title: "Vérification Satellite",
+    feature2Desc: "Audit automatique de la déforestation historique en croisant les parcelles déclarées avec les données d'imagerie Copernic/Sentinel.",
+    feature3Title: "Relances Autonomes",
+    feature3Desc: "Relancez automatiquement vos producteurs dans leur langue d'origine (Portugais, Espagnol, Anglais, Français, Bahasa) par WhatsApp et SMS.",
+    feature4Title: "Dossier de Preuves",
+    feature4Desc: "Éditez automatiquement vos déclarations de diligence raisonnée (DDS Format EU) prêtes à l'envoi immédiat pour éviter tout blocage en douane.",
+    complianceBadge: "Calendrier & Obligations",
+    complianceTitle: "Une échéance légale stricte pour tous les importateurs européens",
+    complianceDesc1: "Toutes les entreprises importantes et moyennes important du café, cacao, soja, huile de palme, bovins, caoutchouc et bois en Europe doivent obligatoirement prouver que leurs produits ne sont pas issus de parcelles déboisées après le 31 décembre 2020.",
+    complianceDesc2: "En cas de non-conformité : blocage immédiat en douanes, amende jusqu'à 4% du chiffre d'affaires annuel et interdiction d'exercer.",
+    complianceGuaranteeTitle: "Garantie Traverdy",
+    complianceGuaranteeDesc: "Notre algorithme applique strictement le benchmark de risque pays actualisé de la Commission européenne pour chaque origine.",
+    complianceMaterialsTitle: "Statuts Matières EUDR",
+    complianceMaterialsCoffee: "☕ Café (HS 0901)",
+    complianceMaterialsCocoa: "🍫 Cacao (HS 1801)",
+    complianceMaterialsWood: "🪵 Bois & Papiers",
+    complianceMaterialsRubber: "🛞 Caoutchouc",
+    complianceMaterialsActive: "Actif",
+    auditBtn: "Démarrer un Audit",
+    portalDemoBadge: "Test instantané",
+    portalDemoTitle: "Simulez l'expérience d'un producteur agricole",
+    portalDemoDesc: "Saisissez une référence de fournisseur démo (par exemple P001, P002, P003 ou P004) ci-dessous pour ouvrir et visualiser le portail public autonome envoyé au producteur par SMS pour collecter ses coordonnées GPS.",
+    portalDemoInputPlaceholder: "Ex : P001, P002, P003...",
+    portalDemoSubmit: "Ouvrir le portail ⚡",
+    footerDesc: "Traverdy aide les importateurs à se conformer au RDUE / EUDR. En naviguant sur ce site, vous acceptez nos conditions d'utilisation et notre politique de conservation sécurisée des données de géolocalisation.",
+    footerCopyright: "Tous droits réservés. Plateforme d'audit et de conformité forestière.",
+    modalTitle: "Se connecter ou créer un compte",
+    modalSubtitle: "Accédez de manière sécurisée à votre tableau de bord de diligence raisonnée EUDR.",
+    modalGoogleBtn: "Connexion sécurisée avec Google",
+    modalSandboxBtn: "Accéder via le Mode Sandbox / Démo",
+    modalClose: "Fermer",
+    modalTipTitle: "💡 Astuce d'évaluation :",
+    modalTipDesc: "Le bouton Mode Sandbox / Démo est sans configuration et fonctionne directement dans cet iframe pour vous permettre de tester immédiatement 100% des outils (carte, importations, déclarations).",
+    modalLegal: "En vous connectant, vous acceptez nos conditions d'utilisation et notre politique de confidentialité liée au règlement européen sur la déforestation (EUDR)."
+  },
+  EN: {
+    navFeatures: "Features",
+    navCompliance: "Regulations",
+    navPortal: "Producer Portal",
+    sandboxBtn: "Sandbox Mode ⚡",
+    loginBtn: "Log In / Register",
+    badgeEudr: "EUDR Compliant",
+    tagline: "🇪🇺 European Union Deforestation Regulation (EUDR)",
+    heroTitle: "Ensure compliance of your imports and secure access to the European market",
+    heroSubtitle: "The all-in-one due diligence platform. Collect GPS coordinates and land parcels, audit forest history using satellite imagery, and generate mandatory regulatory declarations automatically.",
+    demoBtn: "Instant Sandbox Demo ⚡",
+    createProBtn: "Create Pro Account",
+    bullet1: "No commitment",
+    bullet2: "Direct access (No CC)",
+    bullet3: "100% interactive demo",
+    previewTitle: "Traverdy Pro",
+    previewStatus: "Live preview",
+    previewCompliance: "Compliance Rate",
+    previewCompliant: "↑ Compliant",
+    previewAudited: "Audited coops",
+    previewAuditedSub: "Automated due diligence",
+    previewSatellite: "Latest satellite report",
+    previewNoRisk: "No risk detected",
+    previewSentinel: "✓ Sentinel L2A Verified",
+    previewMapTitle: "Dynamic raw materials mapping (Coffee, Cocoa)",
+    previewMapDesc: "Parcel polygons are overlaid in real-time with the European deforestation alert database and Copernicus index.",
+    featuresTitleBadge: "Key Capabilities",
+    featuresTitle: "A complete and sovereign technological suite",
+    featuresDesc: "Traverdy automates the entire EUDR governance chain, from field data collection with producers to customs proof packages.",
+    feature1Title: "Precise Geolocation",
+    feature1Desc: "Native GPS coordinates and polygon collection via our mobile-optimized producer portal. No app installation needed.",
+    feature2Title: "Satellite Audits",
+    feature2Desc: "Automatic analysis of historical forest changes by crossing declared parcels with Copernicus/Sentinel satellite imagery.",
+    feature3Title: "Autonomic Reminders",
+    feature3Desc: "Automatically send reminders to your producers in their native language (Portuguese, Spanish, English, French, Bahasa) via WhatsApp & SMS.",
+    feature4Title: "Customs Proof Pack",
+    feature4Desc: "Automatically generate your due diligence statements (DDS EU format) ready for customs to avoid any border delay.",
+    complianceBadge: "Timeline & Mandate",
+    complianceTitle: "A strict legal deadline for all European importers",
+    complianceDesc1: "All major and medium enterprises importing coffee, cocoa, soy, palm oil, cattle, rubber, and wood into Europe must prove that their commodities do not come from deforested plots after December 31, 2020.",
+    complianceDesc2: "In case of non-compliance: immediate customs holds, fines up to 4% of global annual turnover, and trading bans.",
+    complianceGuaranteeTitle: "Traverdy Guarantee",
+    complianceGuaranteeDesc: "Our algorithm strictly applies the country risk benchmark updated by the European Commission for each origin.",
+    complianceMaterialsTitle: "EUDR Commodity Status",
+    complianceMaterialsCoffee: "☕ Coffee (HS 0901)",
+    complianceMaterialsCocoa: "🍫 Cocoa (HS 1801)",
+    complianceMaterialsWood: "🪵 Wood & Paper",
+    complianceMaterialsRubber: "🛞 Rubber",
+    complianceMaterialsActive: "Active",
+    auditBtn: "Start an Audit",
+    portalDemoBadge: "Instant Test",
+    portalDemoTitle: "Simulate a farmer/producer experience",
+    portalDemoDesc: "Enter a demo supplier reference (e.g., P001, P002, P003, or P004) below to open and view the public portal sent to farmers by SMS to collect their GPS coordinates.",
+    portalDemoInputPlaceholder: "E.g., P001, P002, P003...",
+    portalDemoSubmit: "Open Portal ⚡",
+    footerDesc: "Traverdy helps importers comply with EUDR. By browsing this site, you accept our terms of service and our secure geodata retention policy.",
+    footerCopyright: "All rights reserved. Forest compliance & audit platform.",
+    modalTitle: "Log In or Create an Account",
+    modalSubtitle: "Access your EUDR due diligence dashboard securely.",
+    modalGoogleBtn: "Secure Log In with Google",
+    modalSandboxBtn: "Access via Sandbox / Demo Mode",
+    modalClose: "Close",
+    modalTipTitle: "💡 Evaluation Tip:",
+    modalTipDesc: "The Sandbox / Demo Mode button bypasses configuration and works directly in this iframe to let you test 100% of capabilities immediately (map, uploads, declarations).",
+    modalLegal: "By logging in, you accept our terms of use and our privacy policy associated with the European Deforestation Regulation (EUDR)."
+  }
+};
+
 interface PublicSupplierPortalProps {
   supplierRef: string;
   onSubmitted: (updated: Supplier) => void;
@@ -1051,6 +1225,20 @@ export default function App() {
   }, []);
 
   const [activePortalRef, setActivePortalRef] = useState<string | null>(initialSupplierRef);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  
+  const [appLang, setAppLang] = useState<'FR' | 'EN'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('traverdy_app_lang');
+      if (saved === 'FR' || saved === 'EN') return saved;
+    }
+    return 'FR';
+  });
+
+  const changeAppLang = (lang: 'FR' | 'EN') => {
+    setAppLang(lang);
+    localStorage.setItem('traverdy_app_lang', lang);
+  };
 
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [activeFilter, setActiveFilter] = useState<Status | 'all'>('all');
@@ -1459,101 +1647,449 @@ export default function App() {
   }
 
   if (!user) {
+    const d = LANDING_DICTS[appLang];
     return (
-      <div className="min-h-screen bg-[#f4f6f9] flex flex-col items-center justify-center p-6 bg-[url('https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?q=80&w=2626&auto=format&fit=crop')] bg-cover bg-center">
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="relative z-10 w-full max-w-md bg-white rounded-3xl p-10 shadow-2xl space-y-6"
-        >
-          <div className="text-center">
-            <div className="inline-flex items-center gap-3 mb-6">
-              <div className="w-4 h-4 bg-[#1db954] rounded-full" />
-              <span className="font-display font-black text-3xl tracking-tight">Traverdy</span>
+      <div className="min-h-screen bg-slate-50 text-slate-800 selection:bg-emerald-500/30 font-sans flex flex-col relative overflow-x-hidden">
+        {/* Navigation Bar */}
+        <header className="sticky top-0 bg-white/70 backdrop-blur-md border-b border-slate-200/60 h-16 px-6 lg:px-12 flex items-center justify-between z-40 transition-all">
+          <div className="flex items-center gap-2">
+            <div className="w-3.5 h-3.5 bg-[#1db954] rounded-full shadow-[0_0_8px_rgba(29,185,84,0.6)]" />
+            <span className="font-display font-black text-2xl tracking-tight text-slate-900">Traverdy</span>
+            <span className="ml-2 px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200 uppercase tracking-wider">{d.badgeEudr}</span>
+          </div>
+
+          <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
+            <a href="#features" className="hover:text-[#1db954] transition-colors font-medium">{d.navFeatures}</a>
+            <a href="#compliance" className="hover:text-[#1db954] transition-colors font-medium">{d.navCompliance}</a>
+            <a href="#demo-portal" className="hover:text-[#1db954] transition-colors font-medium">{d.navPortal}</a>
+          </nav>
+
+          <div className="flex items-center gap-3">
+            {/* Language Selection Toggle */}
+            <div className="flex bg-slate-100 rounded-full p-0.5 border border-slate-200 mr-1 shrink-0">
+              <button
+                onClick={() => changeAppLang('FR')}
+                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                  appLang === 'FR' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <span>🇫🇷</span> <span className="hidden sm:inline">FR</span>
+              </button>
+              <button
+                onClick={() => changeAppLang('EN')}
+                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                  appLang === 'EN' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <span>🇬🇧</span> <span className="hidden sm:inline">EN</span>
+              </button>
             </div>
-            <h2 className="text-xl font-bold text-slate-900">Bienvenue sur la plateforme</h2>
-            <p className="text-sm text-slate-500 mt-2">Simplifiez votre conformité EUDR avec nos outils de géolocalisation et d'audit.</p>
+
+            <button
+              onClick={() => signInDemo()}
+              className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold rounded-full border border-emerald-200 transition-all cursor-pointer"
+            >
+              {d.sandboxBtn}
+            </button>
+            <button 
+              onClick={() => setShowLoginModal(true)}
+              className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-full flex items-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+            >
+              <LogIn size={14} />
+              {d.loginBtn}
+            </button>
+          </div>
+        </header>
+
+        {/* Hero Section */}
+        <section className="relative py-16 lg:py-24 px-6 lg:px-12 flex flex-col items-center text-center bg-gradient-to-b from-white via-slate-50 to-white overflow-hidden">
+          {/* Subtle glowing backgrounds */}
+          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-emerald-100/30 rounded-full blur-3xl pointer-events-none" />
+          
+          <div className="relative z-10 max-w-4xl mx-auto space-y-6">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-50 border border-emerald-200 rounded-full text-[11px] font-bold text-emerald-700 uppercase tracking-wider">
+              <span>🇪🇺</span> {d.tagline}
+            </div>
+
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-sans tracking-tight font-extrabold text-slate-900 leading-[1.1]">
+              {d.heroTitle}
+            </h1>
+
+            <p className="max-w-2xl mx-auto text-base md:text-lg text-slate-500 font-medium leading-relaxed">
+              {d.heroSubtitle}
+            </p>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+              <button 
+                onClick={() => signInDemo()}
+                className="w-full sm:w-auto px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold flex items-center justify-center gap-3 shadow-xl hover:shadow-emerald-200 hover:-translate-y-0.5 active:translate-y-0 transition-all text-sm cursor-pointer"
+              >
+                <Sparkles size={18} />
+                {d.demoBtn}
+              </button>
+              <button 
+                onClick={() => setShowLoginModal(true)}
+                className="w-full sm:w-auto px-8 py-4 bg-slate-950 text-white border border-slate-800 hover:bg-slate-800 rounded-2xl font-bold flex items-center justify-center gap-3 shadow-md hover:-translate-y-0.5 active:translate-y-0 transition-all text-sm cursor-pointer"
+              >
+                {d.createProBtn}
+                <ChevronRight size={18} />
+              </button>
+            </div>
+
+            <div className="pt-3 text-[11px] text-slate-400 flex items-center justify-center gap-4 font-semibold">
+              <span className="flex items-center gap-1.5">
+                <CheckCircle2 size={12} className="text-emerald-500" />
+                {d.bullet1}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <CheckCircle2 size={12} className="text-emerald-500" />
+                {d.bullet2}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <CheckCircle2 size={12} className="text-emerald-500" />
+                {d.bullet3}
+              </span>
+            </div>
           </div>
 
-          {authError && (
-            <motion.div 
-              initial={{ height: 0, opacity: 0 }} 
-              animate={{ height: "auto", opacity: 1 }}
-              className="p-4 bg-red-50 border border-red-100 rounded-2xl text-xs text-red-700 space-y-2"
-            >
-              <div className="flex gap-2 items-start font-bold">
-                <AlertTriangle size={14} className="mt-0.5 shrink-0" />
-                <span>Problème de Pop-up ou de Configuration</span>
+          {/* Interactive Screen Preview representing Traverdy UI */}
+          <div className="mt-16 relative z-10 w-full max-w-5xl rounded-3xl border border-slate-200/80 shadow-2xl overflow-hidden bg-white p-2">
+            <div className="bg-slate-900 text-slate-400 p-4 rounded-2xl">
+              <div className="flex items-center justify-between border-b border-white/5 pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 bg-[#1db954] rounded-full animate-pulse" />
+                  <span className="text-xs font-bold text-white tracking-tight">{d.previewTitle}</span>
+                  <span className="text-[9px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded-full font-bold uppercase">{d.previewStatus}</span>
+                </div>
+                <div className="flex gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-red-400" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
+                </div>
               </div>
-              <p className="leading-relaxed font-medium">{authError}</p>
-            </motion.div>
-          )}
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 text-left">
+                <div className="bg-white/5 rounded-xl p-4 border border-white/5">
+                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">{d.previewCompliance}</span>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <span className="text-3xl font-black text-white">92.4%</span>
+                    <span className="text-[10px] text-[#1db954] font-bold">{d.previewCompliant}</span>
+                  </div>
+                  <div className="w-full bg-white/10 h-1.5 rounded-full mt-3 overflow-hidden">
+                    <div className="bg-[#1db954] h-full rounded-full" style={{ width: '92%' }} />
+                  </div>
+                </div>
 
-          <div className="space-y-3">
-            <button 
-              onClick={signIn}
-              type="button"
-              className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-slate-800 transition-all shadow-xl"
-            >
-              <LogIn size={20} />
-              Connexion avec Google
-            </button>
+                <div className="bg-white/5 rounded-xl p-4 border border-white/5">
+                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">{d.previewAudited}</span>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <span className="text-3xl font-black text-white">48 parcelles</span>
+                    <span className="text-[10px] text-emerald-400 font-bold">✓ RGPD Ok</span>
+                  </div>
+                  <p className="text-[10px] text-slate-400 mt-2">{d.previewAuditedSub}</p>
+                </div>
 
-            <button 
-              onClick={signInDemo}
-              type="button"
-              className="w-full py-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-emerald-100/70 transition-all"
-            >
-              <Check size={18} />
-              Accéder via le Mode Sandbox / Démo
-            </button>
+                <div className="bg-white/5 rounded-xl p-4 border border-white/5">
+                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">{d.previewSatellite}</span>
+                  <p className="text-xs text-slate-200 mt-1 font-bold">{d.previewNoRisk}</p>
+                  <span className="mt-2 inline-flex items-center gap-1 text-[9px] bg-emerald-500/25 text-emerald-400 px-2 py-0.5 rounded-full font-bold">
+                    {d.previewSentinel}
+                  </span>
+                </div>
+              </div>
+
+              {/* Graphic Mockup Area */}
+              <div className="mt-4 bg-slate-950/80 rounded-xl p-6 border border-white/5 text-center min-h-[200px] flex flex-col justify-center items-center">
+                <Globe size={40} className="text-emerald-500/60 animate-pulse" />
+                <span className="text-xs text-slate-300 font-bold tracking-tight mt-4">
+                  {d.previewMapTitle}
+                </span>
+                <p className="text-[10px] text-slate-500 max-w-md mt-1">
+                  {d.previewMapDesc}
+                </p>
+                <div className="mt-4 flex gap-2">
+                  <span className="px-3 py-1 bg-white/5 rounded text-[10px] font-mono border border-white/5">0.0528° N, 32.5811° E</span>
+                  <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded text-[10px] font-mono border border-emerald-500/10">DDS_COMPLIANT_OK</span>
+                </div>
+              </div>
+            </div>
           </div>
+        </section>
 
-          <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-[10px] text-slate-500 space-y-1">
-            <p className="font-bold text-slate-700">💡 Astuce d'évaluation :</p>
-            <p className="leading-relaxed">
-              Le bouton <strong>Mode Sandbox / Démo</strong> est sans configuration et fonctionne directement dans cet iframe pour vous permettre de tester immédiatement 100% des outils (carte, importations, déclarations).
+        {/* Features Bento Grid */}
+        <section id="features" className="py-20 bg-white px-6 lg:px-12 border-t border-slate-100">
+          <div className="max-w-6xl mx-auto space-y-12">
+            <div className="text-center space-y-4">
+              <span className="text-xs font-black text-emerald-600 uppercase tracking-widest block">{d.featuresTitleBadge}</span>
+              <h2 className="text-3xl md:text-4xl font-sans font-bold text-slate-900 tracking-tight">
+                {d.featuresTitle}
+              </h2>
+              <p className="text-sm md:text-base text-slate-500 max-w-2xl mx-auto font-medium">
+                {d.featuresDesc}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200/50 space-y-4 hover:shadow-xl hover:bg-slate-50/50 transition-all">
+                <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
+                  <MapPin size={20} />
+                </div>
+                <h3 className="font-bold text-slate-900 text-lg">{d.feature1Title}</h3>
+                <p className="text-xs text-slate-500 leading-relaxed font-semibold">
+                  {d.feature1Desc}
+                </p>
+              </div>
+
+              <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200/50 space-y-4 hover:shadow-xl hover:bg-slate-50/50 transition-all">
+                <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
+                  <Globe size={20} />
+                </div>
+                <h3 className="font-bold text-slate-900 text-lg">{d.feature2Title}</h3>
+                <p className="text-xs text-slate-500 leading-relaxed font-semibold">
+                  {d.feature2Desc}
+                </p>
+              </div>
+
+              <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200/50 space-y-4 hover:shadow-xl hover:bg-slate-50/50 transition-all">
+                <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600">
+                  <Send size={20} />
+                </div>
+                <h3 className="font-bold text-slate-900 text-lg">{d.feature3Title}</h3>
+                <p className="text-xs text-slate-500 leading-relaxed font-semibold">
+                  {d.feature3Desc}
+                </p>
+              </div>
+
+              <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200/50 space-y-4 hover:shadow-xl hover:bg-slate-50/50 transition-all">
+                <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600">
+                  <FileText size={20} />
+                </div>
+                <h3 className="font-bold text-slate-900 text-lg">{d.feature4Title}</h3>
+                <p className="text-xs text-slate-500 leading-relaxed font-semibold">
+                  {d.feature4Desc}
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Section Réglementation EUDR */}
+        <section id="compliance" className="py-20 bg-slate-50 px-6 lg:px-12 border-t border-slate-200/50">
+          <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center gap-12">
+            <div className="flex-1 space-y-6">
+              <span className="text-xs font-black text-emerald-600 uppercase tracking-widest block">{d.complianceBadge}</span>
+              <h2 className="text-3xl font-sans font-bold text-slate-900 tracking-tight">
+                {d.complianceTitle}
+              </h2>
+              <div className="space-y-4 text-xs md:text-sm text-slate-600 font-semibold">
+                <p>
+                  {d.complianceDesc1}
+                </p>
+                <p className="font-extrabold text-slate-900">
+                  {d.complianceDesc2}
+                </p>
+              </div>
+              <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-5 flex items-start gap-4">
+                <Award size={24} className="text-emerald-600 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <h4 className="font-bold text-emerald-950 text-sm">{d.complianceGuaranteeTitle}</h4>
+                  <p className="text-xs text-emerald-800 leading-relaxed">
+                    {d.complianceGuaranteeDesc}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="w-full md:w-80 bg-white border border-slate-200 rounded-3xl p-6 shadow-xl space-y-6">
+              <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wide">{d.complianceMaterialsTitle}</h3>
+              
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200/50">
+                  <span className="text-xs font-bold font-mono text-slate-700">{d.complianceMaterialsCoffee}</span>
+                  <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold">{d.complianceMaterialsActive}</span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200/50">
+                  <span className="text-xs font-bold font-mono text-slate-700">{d.complianceMaterialsCocoa}</span>
+                  <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold">{d.complianceMaterialsActive}</span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200/50">
+                  <span className="text-xs font-bold font-mono text-slate-700">{d.complianceMaterialsWood}</span>
+                  <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold">v2</span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200/50">
+                  <span className="text-xs font-bold font-mono text-slate-700">{d.complianceMaterialsRubber}</span>
+                  <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold">v2</span>
+                </div>
+              </div>
+              <div className="pt-2">
+                <button
+                  onClick={() => signInDemo()}
+                  className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all cursor-pointer text-center"
+                >
+                  {d.auditBtn}
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Section Interactive Portail Producteur */}
+        <section id="demo-portal" className="py-20 bg-white px-6 lg:px-12 border-t border-slate-200/50">
+          <div className="max-w-4xl mx-auto text-center space-y-8">
+            <div className="space-y-3">
+              <span className="text-xs font-black text-emerald-600 uppercase tracking-widest block">{d.portalDemoBadge}</span>
+              <h2 className="text-3xl font-sans font-bold text-slate-900 tracking-tight">
+                {d.portalDemoTitle}
+              </h2>
+              <p className="text-sm text-slate-500 max-w-xl mx-auto font-semibold">
+                {d.portalDemoDesc}
+              </p>
+            </div>
+
+            <div className="max-w-md mx-auto bg-slate-50 p-6 rounded-3xl border border-slate-200">
+              <form 
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.currentTarget);
+                  const inputRef = formData.get('quickRef') as string;
+                  if (inputRef && inputRef.trim()) {
+                    setActivePortalRef(inputRef.trim().toUpperCase());
+                  }
+                }} 
+                className="flex gap-2"
+              >
+                <input
+                  name="quickRef"
+                  type="text"
+                  placeholder={d.portalDemoInputPlaceholder}
+                  required
+                  className="flex-1 px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold font-mono text-slate-800 uppercase focus:outline-none focus:border-emerald-600 transition-all font-semibold"
+                />
+                <button
+                  type="submit"
+                  className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-all shadow-md active:scale-95 flex items-center gap-1 shrink-0 cursor-pointer"
+                >
+                  {d.portalDemoSubmit}
+                </button>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        {/* Footer */}
+        <footer className="bg-slate-900 text-slate-400 py-12 px-6 lg:px-12 mt-auto border-t border-white/5">
+          <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-2">
+              <div className="w-2.5 h-2.5 bg-[#1db954] rounded-full" />
+              <span className="font-display font-bold text-white text-lg tracking-tight">Traverdy</span>
+              <span className="text-[10px] text-slate-500">· Version {COMPLIANCE_METADATA.version}</span>
+            </div>
+            
+            <p className="text-[11px] text-slate-500 text-center md:text-right max-w-md leading-relaxed">
+              {d.footerDesc}
             </p>
           </div>
-
-          {/* Accès rapide sans changer l'URL */}
-          <div className="pt-5 border-t border-slate-100 space-y-3">
-            <div className="text-center">
-              <span className="text-[10px] uppercase font-black text-slate-400 tracking-wider block">Accès Portail Producteur</span>
-              <p className="text-[10px] text-slate-500 mt-1">Saisissez une référence de fournisseur pour voir et tester sa fiche sans changer l'URL.</p>
-            </div>
-            <form 
-              onSubmit={(e) => {
-                e.preventDefault();
-                const formData = new FormData(e.currentTarget);
-                const inputRef = formData.get('quickRef') as string;
-                if (inputRef && inputRef.trim()) {
-                  setActivePortalRef(inputRef.trim().toUpperCase());
-                }
-              }} 
-              className="flex gap-2"
-            >
-              <input
-                name="quickRef"
-                type="text"
-                placeholder="Ex : P001, P002, P003..."
-                required
-                className="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold font-mono text-slate-800 uppercase focus:outline-none focus:border-emerald-600 focus:bg-white transition-all"
-              />
-              <button
-                type="submit"
-                className="px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-all shadow-md active:scale-95 flex items-center gap-1 shrink-0"
-              >
-                Ouvrir ⚡
-              </button>
-            </form>
+          <div className="max-w-6xl mx-auto mt-6 pt-6 border-t border-white/5 text-center md:text-left">
+            <p className="text-xs text-slate-600">
+              &copy; {new Date().getFullYear()} Traverdy SAS. {d.footerCopyright}
+            </p>
           </div>
+        </footer>
 
-          <p className="text-[10px] text-center text-slate-400 leading-relaxed">
-            En vous connectant, vous acceptez nos conditions d'utilisation et notre politique de confidentialité liée au règlement européen sur la déforestation (EUDR).
-          </p>
-        </motion.div>
+        {/* Login Modal */}
+        <AnimatePresence>
+          {showLoginModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              {/* Backdrop */}
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowLoginModal(false)}
+                className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
+              />
+
+              {/* Modal Box */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                className="relative z-10 w-full max-w-md bg-white rounded-3xl p-8 md:p-10 shadow-2xl border border-slate-100 space-y-6"
+              >
+                {/* Header with Close */}
+                <div className="flex justify-between items-start">
+                  <div className="inline-flex items-center gap-2">
+                    <div className="w-3.5 h-3.5 bg-[#1db954] rounded-full" />
+                    <span className="font-display font-black text-xl tracking-tight text-slate-900">Traverdy</span>
+                  </div>
+                  <button 
+                    onClick={() => setShowLoginModal(false)}
+                    className="p-1 px-2.5 bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 rounded-full text-xs font-bold transition-all cursor-pointer"
+                  >
+                    {d.modalClose}
+                  </button>
+                </div>
+
+                <div className="space-y-2">
+                  <h2 className="text-xl font-bold text-slate-950">{d.modalTitle}</h2>
+                  <p className="text-xs text-slate-500 leading-relaxed font-semibold">
+                    {d.modalSubtitle}
+                  </p>
+                </div>
+
+                {authError && (
+                  <motion.div 
+                    initial={{ height: 0, opacity: 0 }} 
+                    animate={{ height: "auto", opacity: 1 }}
+                    className="p-4 bg-red-50 border border-red-100 rounded-2xl text-xs text-red-700 space-y-2"
+                  >
+                    <div className="flex gap-2 items-start font-bold">
+                      <AlertTriangle size={14} className="mt-0.5 shrink-0" />
+                      <span>Problème de Pop-up ou de Configuration</span>
+                    </div>
+                    <p className="leading-relaxed font-semibold">{authError}</p>
+                  </motion.div>
+                )}
+
+                <div className="space-y-3 pt-2">
+                  <button 
+                    onClick={() => {
+                      signIn();
+                    }}
+                    type="button"
+                    className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-slate-800 transition-all shadow-md cursor-pointer"
+                  >
+                    <LogIn size={20} />
+                    {d.modalGoogleBtn}
+                  </button>
+
+                  <button 
+                    onClick={() => {
+                      signInDemo();
+                      setShowLoginModal(false);
+                    }}
+                    type="button"
+                    className="w-full py-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl font-bold flex items-center justify-center gap-3 hover:bg-emerald-100/70 transition-all cursor-pointer"
+                  >
+                    <Check size={18} />
+                    {d.modalSandboxBtn}
+                  </button>
+                </div>
+
+                <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-[10px] text-slate-500 space-y-1">
+                  <p className="font-bold text-slate-700">{d.modalTipTitle}</p>
+                  <p className="leading-relaxed font-semibold">
+                    {d.modalTipDesc}
+                  </p>
+                </div>
+
+                <p className="text-[10px] text-center text-slate-400 leading-relaxed font-medium">
+                  {d.modalLegal}
+                </p>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </div>
     );
   }
@@ -1566,6 +2102,8 @@ export default function App() {
         trialDaysRemaining={trialDaysRemaining} 
         currentView={currentView}
         setCurrentView={setCurrentView}
+        appLang={appLang}
+        onChangeAppLang={changeAppLang}
       />
 
       <main className="pl-64 min-h-screen">
