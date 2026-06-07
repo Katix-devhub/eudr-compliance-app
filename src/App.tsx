@@ -41,7 +41,9 @@ import {
   QrCode,
   Award,
   ExternalLink,
-  Coins
+  Coins,
+  Shield,
+  Lock
 } from 'lucide-react';
 import { cn } from './lib/utils';
 import { useAuth } from './lib/contexts/AuthContext';
@@ -739,6 +741,7 @@ const LANDING_DICTS = {
     navFeatures: "Fonctionnalités",
     navCompliance: "Réglementation",
     navPortal: "Portail Producteur",
+    navPricing: "Tarifs",
     sandboxBtn: "Mode Sandbox ⚡",
     loginBtn: "Se connecter / S'enregistrer",
     badgeEudr: "Conforme EUDR",
@@ -799,12 +802,70 @@ const LANDING_DICTS = {
     modalClose: "Fermer",
     modalTipTitle: "💡 Astuce d'évaluation :",
     modalTipDesc: "Le bouton Mode Sandbox / Démo est sans configuration et fonctionne directement dans cet iframe pour vous permettre de tester immédiatement 100% des outils (carte, importations, déclarations).",
-    modalLegal: "En vous connectant, vous acceptez nos conditions d'utilisation et notre politique de confidentialité liée au règlement européen sur la déforestation (EUDR)."
+    modalLegal: "En vous connectant, vous acceptez nos conditions d'utilisation et notre politique de confidentialité liée au règlement européen sur la déforestation (EUDR).",
+    pricingTitleBadge: "Tarification",
+    pricingTitle: "Des tarifs clairs, adaptés à vos volumes d'importation",
+    pricingSubtitle: "Commencez gratuitement en mode Sandbox pour tester l'intégralité des outils, puis activez votre conformité en production.",
+    pricingPeriod: "mois",
+    pricingFreeName: "Essai Sandbox",
+    pricingFreePrice: "0€",
+    pricingFreeDesc: "Idéal pour tester la solution et évaluer l'expérience producteur.",
+    pricingFreeFeat1: "Jusqu'à 4 fournisseurs démo",
+    pricingFreeFeat2: "Simulateur de coordonnées GPS interactif",
+    pricingFreeFeat3: "Rapports d'audit satellite de simulation",
+    pricingFreeFeat4: "Déclarations DDS de test fictives",
+    pricingFreeFeat5: "Support communautaire standard",
+    pricingProName: "Traverdy Pro",
+    pricingProPrice: "499€",
+    pricingProDesc: "L'outil tout-en-un pour les importateurs et négociants.",
+    pricingProFeat1: "Nombre illimité de fournisseurs actifs",
+    pricingProFeat2: "Relances automatiques WhatsApp & SMS",
+    pricingProFeat3: "Vraie vérification satellite Copernicus intégrée",
+    pricingProFeat4: "Génération de dossiers de preuves réglementaires",
+    pricingProFeat5: "Support prioritaire par email & chat sous 24h",
+    pricingEnterpriseName: "Grand Compte",
+    pricingEnterprisePrice: "Sur devis",
+    pricingEnterpriseDesc: "Pour les multinationales et coopératives d'envergure globale.",
+    pricingEnterpriseFeat1: "Accès API complet et connecteur ERP (SAP)",
+    pricingEnterpriseFeat2: "Imagerie satellite ultra-haute résolution",
+    pricingEnterpriseFeat3: "Conseil juridique & conformité réglementaire",
+    pricingEnterpriseFeat4: "Garantie SLA 99.9% de disponibilité",
+    pricingEnterpriseFeat5: "Account Manager & ingénieur support dédié",
+    pricingSelectBtn: "Démarrer l'audit gratuit",
+    pricingContactBtn: "Contacter le service commercial",
+    gdprBannerTitle: "Respect de votre vie privée et conformité RGPD",
+    gdprBannerText: "Traverdy utilise des cookies techniques essentiels pour faire fonctionner la plateforme (authentification, sécurité, session, sélecteurs linguistiques) et sauvegarder vos choix légaux de manière souveraine. Aucun traceur publicitaire tiers n'est utilisé.",
+    gdprBtnAccept: "Accepter et continuer",
+    gdprBtnEssential: "Uniquement l'essentiel",
+    gdprBtnRefuse: "Continuer sans accepter",
+    gdprBtnLearnMore: "En savoir plus",
+    gdprModalTitle: "Politique de gestion des Cookies & RGPD",
+    gdprModalIntro: "Conformément au Règlement Général sur la Protection des Données (RGPD) du Parlement européen et du Conseil (Règlement UE 2016/679), Traverdy s'engage à assurer la transparence totale, la protection maximale et la souveraineté de vos données.",
+    gdprTableColCookie: "Cookie / Stockage",
+    gdprTableColType: "Type",
+    gdprTableColPurpose: "Raison d'être & Utilisation",
+    gdprTableColDuration: "Durée de conservation",
+    gdprRow1Name: "traverdy_app_lang",
+    gdprRow1Type: "Technique (Local)",
+    gdprRow1Purpose: "Mémorise votre langue de navigation préférée (Français ou Anglais) pour vous offrir un affichage instantané adapté sans recharger le serveur.",
+    gdprRow1Duration: "Persistant (jusqu'au nettoyage de votre navigateur)",
+    gdprRow2Name: "traverdy_gdpr_consent",
+    gdprRow2Type: "Technique (Local)",
+    gdprRow2Purpose: "Mémorise votre choix de consentement ainsi que vos préférences relatives à l'utilisation des cookies techniques et des cookies d'évaluation.",
+    gdprRow2Duration: "1 an",
+    gdprRow3Name: "demo_suppliers / demo_declarations",
+    gdprRow3Type: "Technique de session",
+    gdprRow3Purpose: "Permet de conserver vos modifications (fournisseurs créés, parcelles cartographiées, déclarations éditées) localement dans l'iframe de démo afin que vos données ne soient jamais exposées publiquement.",
+    gdprRow3Duration: "Persistant ou Session",
+    gdprModalSec2Title: "Vos Droits & Vos Garanties Souveraines",
+    gdprModalSec2Text: "Toutes nos bases de données clients réels sont hébergées au sein d'infrastructures hautement sécurisées situées exclusivement en Europe (Europe de l'Ouest / Cloud Run & Firestore). Vos données d'importation, de géolocalisation de parcelles, d'audits satellites et de déclarations de diligence raisonnée (DDS) sont chiffrées au repos et en transit et ne feront jamais l'objet d'un transfert commercial à des tiers. Vous disposez d'un droit permanent d'accès, d'export complet, de rectification et d'effacement total de vos données en écrivant à notre délégué à la protection des données.",
+    gdprModalClose: "Fermer et enregistrer mes choix"
   },
   EN: {
     navFeatures: "Features",
     navCompliance: "Regulations",
     navPortal: "Producer Portal",
+    navPricing: "Pricing",
     sandboxBtn: "Sandbox Mode ⚡",
     loginBtn: "Log In / Register",
     badgeEudr: "EUDR Compliant",
@@ -865,7 +926,64 @@ const LANDING_DICTS = {
     modalClose: "Close",
     modalTipTitle: "💡 Evaluation Tip:",
     modalTipDesc: "The Sandbox / Demo Mode button bypasses configuration and works directly in this iframe to let you test 100% of capabilities immediately (map, uploads, declarations).",
-    modalLegal: "By logging in, you accept our terms of use and our privacy policy associated with the European Deforestation Regulation (EUDR)."
+    modalLegal: "By logging in, you accept our terms of use and our privacy policy associated with the European Deforestation Regulation (EUDR).",
+    pricingTitleBadge: "Pricing Plans",
+    pricingTitle: "Simple pricing tailored to your import volume",
+    pricingSubtitle: "Start for free in Sandbox mode to explore 100% of the platform, then migrate when you are ready to certify.",
+    pricingPeriod: "month",
+    pricingFreeName: "Sandbox Trial",
+    pricingFreePrice: "$0",
+    pricingFreeDesc: "Perfect to evaluate the platform and try the producer flow.",
+    pricingFreeFeat1: "Up to 4 active demo suppliers",
+    pricingFreeFeat2: "Interactive GPS plot simulator",
+    pricingFreeFeat3: "Simulated satellite audit reports",
+    pricingFreeFeat4: "Watermarked test DDS certificates",
+    pricingFreeFeat5: "Standard community support",
+    pricingProName: "Traverdy Pro",
+    pricingProPrice: "$499",
+    pricingProDesc: "The complete package for broker/importer compliance.",
+    pricingProFeat1: "Unlimited active suppliers & pilots",
+    pricingProFeat2: "Automated WhatsApp & SMS reminders",
+    pricingProFeat3: "Live Copernicus/Sentinel satellite audits",
+    pricingProFeat4: "Generation of valid EU customs-proof packs",
+    pricingProFeat5: "Priority email & chat support within 24h",
+    pricingEnterpriseName: "Enterprise",
+    pricingEnterprisePrice: "Custom",
+    pricingEnterpriseDesc: "For global enterprises, cooperatives and heavy supply chains.",
+    pricingEnterpriseFeat1: "Full API access & ERP software sync (SAP, etc.)",
+    pricingEnterpriseFeat2: "Ultra-high resolution satellite feeds",
+    pricingEnterpriseFeat3: "Dedicated regulatory legal advisory",
+    pricingEnterpriseFeat4: "99.9% platform availability SLA",
+    pricingEnterpriseFeat5: "Dedicated Account Success manager",
+    pricingSelectBtn: "Start Free Audit",
+    pricingContactBtn: "Contact sales team",
+    gdprBannerTitle: "Respect for your Privacy & GDPR Compliance",
+    gdprBannerText: "Traverdy uses essential technical cookies/local storage to power our platform operations (secure authentication, language preference, security tokens, and saving your privacy choices). No third-party marketing or tracking scripts are loaded.",
+    gdprBtnAccept: "Accept & Continue",
+    gdprBtnEssential: "Essential Only",
+    gdprBtnRefuse: "Continue without accepting",
+    gdprBtnLearnMore: "Learn More",
+    gdprModalTitle: "Cookie Policy & GDPR Compliance Detail",
+    gdprModalIntro: "In full compliance with the European Union's General Data Protection Regulation (GDPR - EU 2016/679), Traverdy is committed to absolute transparency, top-tier security, and complete sovereignty of your data.",
+    gdprTableColCookie: "Cookie / Storage Key",
+    gdprTableColType: "Type",
+    gdprTableColPurpose: "Purpose & Use Cases",
+    gdprTableColDuration: "Retention Period",
+    gdprRow1Name: "traverdy_app_lang",
+    gdprRow1Type: "Technical (Local)",
+    gdprRow1Purpose: "Remembers your preferred navigation language (French or English) for instantaneous client-side UI rendering without server roundtrips.",
+    gdprRow1Duration: "Persistent (until browser storage clearance)",
+    gdprRow2Name: "traverdy_gdpr_consent",
+    gdprRow2Type: "Technical (Local)",
+    gdprRow2Purpose: "Stores your explicit consent decision (accepted/essential only) to prevent re-prompting on subsequent visits.",
+    gdprRow2Duration: "1 year",
+    gdprRow3Name: "demo_suppliers / demo_declarations",
+    gdprRow3Type: "Technical & Sandbox State",
+    gdprRow3Purpose: "Holds your interactive simulation edits (custom parcels, new suppliers, mock declarations) safely inside your sandbox session to avoid public leakages.",
+    gdprRow3Duration: "Persistent or Session",
+    gdprModalSec2Title: "Your Rights & Data Sovereignty Guarantees",
+    gdprModalSec2Text: "All our real enterprise and customer databases are hosted within highly secured, sovereign European data centers (West Europe Firestore / Cloud Run). Your supply chain import files, GPS plot polygons, satellite evaluation history, and Due Diligence Statements (DDS) are encrypted both in transit and at rest, and are never shared or sold. You hold absolute rights to inspect, export, correct, or completely erase all your records at any time by contacting our data protection officer.",
+    gdprModalClose: "Close & Save Options"
   }
 };
 
@@ -1227,6 +1345,21 @@ export default function App() {
   const [activePortalRef, setActivePortalRef] = useState<string | null>(initialSupplierRef);
   const [showLoginModal, setShowLoginModal] = useState(false);
   
+  // GDPR Consent State
+  const [gdprConsent, setGdprConsent] = useState<'accepted' | 'only_essential' | null>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('traverdy_gdpr_consent');
+      if (saved === 'accepted' || saved === 'only_essential') return saved as 'accepted' | 'only_essential';
+    }
+    return null;
+  });
+  const [showGdprDetailModal, setShowGdprDetailModal] = useState(false);
+
+  const saveGdprChoice = (choice: 'accepted' | 'only_essential') => {
+    setGdprConsent(choice);
+    localStorage.setItem('traverdy_gdpr_consent', choice);
+  };
+  
   const [appLang, setAppLang] = useState<'FR' | 'EN'>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('traverdy_app_lang');
@@ -1239,6 +1372,8 @@ export default function App() {
     setAppLang(lang);
     localStorage.setItem('traverdy_app_lang', lang);
   };
+
+  const d = LANDING_DICTS[appLang];
 
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [activeFilter, setActiveFilter] = useState<Status | 'all'>('all');
@@ -1647,7 +1782,6 @@ export default function App() {
   }
 
   if (!user) {
-    const d = LANDING_DICTS[appLang];
     return (
       <div className="min-h-screen bg-slate-50 text-slate-800 selection:bg-emerald-500/30 font-sans flex flex-col relative overflow-x-hidden">
         {/* Navigation Bar */}
@@ -1662,6 +1796,7 @@ export default function App() {
             <a href="#features" className="hover:text-[#1db954] transition-colors font-medium">{d.navFeatures}</a>
             <a href="#compliance" className="hover:text-[#1db954] transition-colors font-medium">{d.navCompliance}</a>
             <a href="#demo-portal" className="hover:text-[#1db954] transition-colors font-medium">{d.navPortal}</a>
+            <a href="#pricing" className="hover:text-[#1db954] transition-colors font-medium">{d.navPricing}</a>
           </nav>
 
           <div className="flex items-center gap-3">
@@ -1976,6 +2111,177 @@ export default function App() {
           </div>
         </section>
 
+        {/* Section Tarifs / Pricing */}
+        <section id="pricing" className="py-20 bg-slate-50 px-6 lg:px-12 border-t border-slate-200/50">
+          <div className="max-w-6xl mx-auto space-y-12">
+            <div className="text-center space-y-4">
+              <span className="text-xs font-black text-emerald-600 uppercase tracking-widest block">{d.pricingTitleBadge}</span>
+              <h2 className="text-3xl md:text-4xl font-sans font-bold text-slate-900 tracking-tight">
+                {d.pricingTitle}
+              </h2>
+              <p className="text-sm md:text-base text-slate-500 max-w-2xl mx-auto font-medium">
+                {d.pricingSubtitle}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
+              {/* Sandbox Card */}
+              <div className="bg-white rounded-3xl p-8 border border-slate-200/60 shadow-sm flex flex-col justify-between space-y-6 relative hover:shadow-md transition-all">
+                <div className="space-y-4">
+                  <div className="space-y-1">
+                    <span className="text-[10px] bg-slate-100 text-slate-700 font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">{d.pricingFreeName}</span>
+                    <h3 className="text-2xl font-black text-slate-900 pt-2">{d.pricingFreeName}</h3>
+                    <p className="text-xs text-slate-500 font-semibold">{d.pricingFreeDesc}</p>
+                  </div>
+
+                  <div className="flex items-baseline gap-1 py-2">
+                    <span className="text-4xl font-black text-slate-900">{d.pricingFreePrice}</span>
+                    <span className="text-xs text-slate-400 font-semibold">/ {d.pricingPeriod}</span>
+                  </div>
+
+                  <div className="border-t border-slate-100 my-4" />
+
+                  <ul className="space-y-3">
+                    <li className="flex items-start gap-2.5 text-xs text-slate-600 font-semibold">
+                      <Check size={14} className="text-emerald-500 shrink-0 mt-0.5" />
+                      <span>{d.pricingFreeFeat1}</span>
+                    </li>
+                    <li className="flex items-start gap-2.5 text-xs text-slate-600 font-semibold">
+                      <Check size={14} className="text-emerald-500 shrink-0 mt-0.5" />
+                      <span>{d.pricingFreeFeat2}</span>
+                    </li>
+                    <li className="flex items-start gap-2.5 text-xs text-slate-600 font-semibold">
+                      <Check size={14} className="text-emerald-500 shrink-0 mt-0.5" />
+                      <span>{d.pricingFreeFeat3}</span>
+                    </li>
+                    <li className="flex items-start gap-2.5 text-xs text-slate-600 font-semibold">
+                      <Check size={14} className="text-emerald-500 shrink-0 mt-0.5" />
+                      <span>{d.pricingFreeFeat4}</span>
+                    </li>
+                    <li className="flex items-start gap-2.5 text-xs text-slate-500 font-semibold">
+                      <Check size={14} className="text-slate-300 shrink-0 mt-0.5" />
+                      <span className="line-through">{d.pricingFreeFeat5}</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="pt-4">
+                  <button
+                    onClick={() => signInDemo()}
+                    className="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl transition-all cursor-pointer text-center"
+                  >
+                    {d.pricingSelectBtn}
+                  </button>
+                </div>
+              </div>
+
+              {/* Pro Card (Main highlight) */}
+              <div className="bg-slate-950 text-white rounded-3xl p-8 border-2 border-emerald-500/55 shadow-xl flex flex-col justify-between space-y-6 relative hover:scale-[1.02] transition-colors duration-200">
+                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-emerald-500 text-slate-950 text-[9px] font-black px-4 py-1 rounded-full uppercase tracking-widest flex items-center gap-1 shadow-lg">
+                  <Sparkles size={10} className="fill-slate-950" />
+                  <span>Popular</span>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="space-y-1">
+                    <span className="text-[10px] bg-emerald-500/25 text-emerald-400 font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">{d.pricingProName}</span>
+                    <h3 className="text-2xl font-black text-white pt-2">{d.pricingProName}</h3>
+                    <p className="text-xs text-slate-400 font-semibold">{d.pricingProDesc}</p>
+                  </div>
+
+                  <div className="flex items-baseline gap-1 py-2">
+                    <span className="text-4xl font-black text-white">{d.pricingProPrice}</span>
+                    <span className="text-xs text-slate-500 font-semibold">/ {d.pricingPeriod}</span>
+                  </div>
+
+                  <div className="border-t border-white/5 my-4" />
+
+                  <ul className="space-y-3">
+                    <li className="flex items-start gap-2.5 text-xs text-slate-300 font-semibold">
+                      <Check size={14} className="text-emerald-400 shrink-0 mt-0.5" />
+                      <span>{d.pricingProFeat1}</span>
+                    </li>
+                    <li className="flex items-start gap-2.5 text-xs text-slate-300 font-semibold">
+                      <Check size={14} className="text-emerald-400 shrink-0 mt-0.5" />
+                      <span>{d.pricingProFeat2}</span>
+                    </li>
+                    <li className="flex items-start gap-2.5 text-xs text-slate-300 font-semibold">
+                      <Check size={14} className="text-emerald-400 shrink-0 mt-0.5" />
+                      <span>{d.pricingProFeat3}</span>
+                    </li>
+                    <li className="flex items-start gap-2.5 text-xs text-slate-300 font-semibold">
+                      <Check size={14} className="text-emerald-400 shrink-0 mt-0.5" />
+                      <span>{d.pricingProFeat4}</span>
+                    </li>
+                    <li className="flex items-start gap-2.5 text-xs text-slate-300 font-semibold">
+                      <Check size={14} className="text-emerald-400 shrink-0 mt-0.5" />
+                      <span>{d.pricingProFeat5}</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="pt-4">
+                  <button
+                    onClick={() => setShowLoginModal(true)}
+                    className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-black text-xs rounded-xl transition-all shadow-md hover:shadow-emerald-900/40 cursor-pointer text-center animate-pulse"
+                  >
+                    {d.createProBtn}
+                  </button>
+                </div>
+              </div>
+
+              {/* Enterprise Card */}
+              <div className="bg-white rounded-3xl p-8 border border-slate-200/60 shadow-sm flex flex-col justify-between space-y-6 relative hover:shadow-md transition-all">
+                <div className="space-y-4">
+                  <div className="space-y-1">
+                    <span className="text-[10px] bg-slate-100 text-slate-700 font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">{d.pricingEnterpriseName}</span>
+                    <h3 className="text-2xl font-black text-slate-900 pt-2">{d.pricingEnterpriseName}</h3>
+                    <p className="text-xs text-slate-500 font-semibold">{d.pricingEnterpriseDesc}</p>
+                  </div>
+
+                  <div className="flex items-baseline gap-1 py-2">
+                    <span className="text-4xl font-black text-slate-900">{d.pricingEnterprisePrice}</span>
+                  </div>
+
+                  <div className="border-t border-slate-100 my-4" />
+
+                  <ul className="space-y-3">
+                    <li className="flex items-start gap-2.5 text-xs text-slate-600 font-semibold">
+                      <Check size={14} className="text-emerald-500 shrink-0 mt-0.5" />
+                      <span>{d.pricingEnterpriseFeat1}</span>
+                    </li>
+                    <li className="flex items-start gap-2.5 text-xs text-slate-600 font-semibold">
+                      <Check size={14} className="text-emerald-500 shrink-0 mt-0.5" />
+                      <span>{d.pricingEnterpriseFeat2}</span>
+                    </li>
+                    <li className="flex items-start gap-2.5 text-xs text-slate-600 font-semibold">
+                      <Check size={14} className="text-emerald-500 shrink-0 mt-0.5" />
+                      <span>{d.pricingEnterpriseFeat3}</span>
+                    </li>
+                    <li className="flex items-start gap-2.5 text-xs text-slate-600 font-semibold">
+                      <Check size={14} className="text-emerald-500 shrink-0 mt-0.5" />
+                      <span>{d.pricingEnterpriseFeat4}</span>
+                    </li>
+                    <li className="flex items-start gap-2.5 text-xs text-slate-600 font-semibold">
+                      <Check size={14} className="text-emerald-500 shrink-0 mt-0.5" />
+                      <span>{d.pricingEnterpriseFeat5}</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="pt-4">
+                  <button
+                    onClick={() => setShowLoginModal(true)}
+                    className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition-all cursor-pointer text-center"
+                  >
+                    {d.pricingContactBtn}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Footer */}
         <footer className="bg-slate-900 text-slate-400 py-12 px-6 lg:px-12 mt-auto border-t border-white/5">
           <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
@@ -1989,10 +2295,31 @@ export default function App() {
               {d.footerDesc}
             </p>
           </div>
-          <div className="max-w-6xl mx-auto mt-6 pt-6 border-t border-white/5 text-center md:text-left">
+          <div className="max-w-6xl mx-auto mt-6 pt-6 border-t border-white/5 text-center md:text-left flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-xs text-slate-600">
               &copy; {new Date().getFullYear()} Traverdy SAS. {d.footerCopyright}
             </p>
+            <div className="flex items-center gap-4 text-xs">
+              <button 
+                type="button"
+                onClick={() => setShowGdprDetailModal(true)} 
+                className="text-slate-500 hover:text-emerald-400 font-semibold transition-colors cursor-pointer"
+              >
+                {d.gdprBtnLearnMore} (RGPD)
+              </button>
+              {gdprConsent && (
+                <button 
+                  type="button"
+                  onClick={() => {
+                    localStorage.removeItem('traverdy_gdpr_consent');
+                    setGdprConsent(null);
+                  }} 
+                  className="text-slate-600 hover:text-red-400 font-semibold transition-colors cursor-pointer"
+                >
+                  {appLang === 'FR' ? "Réinitialiser les cookies" : "Reset Cookies"}
+                </button>
+              )}
+            </div>
           </div>
         </footer>
 
@@ -2086,6 +2413,177 @@ export default function App() {
                 <p className="text-[10px] text-center text-slate-400 leading-relaxed font-medium">
                   {d.modalLegal}
                 </p>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* Cookie Consent Banner */}
+        <AnimatePresence>
+          {!gdprConsent && (
+            <motion.div
+              initial={{ y: 100, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 100, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="fixed bottom-6 left-6 right-6 md:left-auto md:right-6 md:max-w-md bg-slate-900 border border-slate-800 text-white rounded-3xl p-6 shadow-2xl z-50 flex flex-col space-y-4 font-sans text-left"
+            >
+              <div className="flex justify-between items-start gap-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-xl shrink-0">
+                    <Shield size={20} />
+                  </div>
+                  <h4 className="text-sm font-black tracking-tight self-center">{d.gdprBannerTitle}</h4>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => saveGdprChoice('only_essential')}
+                  className="text-[11px] text-slate-400 hover:text-emerald-400 underline font-semibold cursor-pointer transition-colors whitespace-nowrap shrink-0 bg-transparent border-none mt-1"
+                >
+                  {d.gdprBtnRefuse} ✕
+                </button>
+              </div>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                {d.gdprBannerText}
+              </p>
+              <div className="flex flex-col sm:flex-row gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => saveGdprChoice('accepted')}
+                  className="flex-1 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black rounded-xl transition-all cursor-pointer text-center"
+                >
+                  {d.gdprBtnAccept}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => saveGdprChoice('only_essential')}
+                  className="py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold rounded-xl transition-all cursor-pointer text-center"
+                >
+                  {d.gdprBtnEssential}
+                </button>
+              </div>
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => setShowGdprDetailModal(true)}
+                  className="text-[11px] text-slate-400 hover:text-slate-300 underline font-semibold cursor-pointer transition-colors"
+                >
+                  {d.gdprBtnLearnMore} (RGPD)
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Detailed GDPR / Privacy Modal */}
+        <AnimatePresence>
+          {showGdprDetailModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowGdprDetailModal(false)}
+                className="absolute inset-0 bg-slate-950/75 backdrop-blur-sm"
+              />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                className="relative z-10 w-full max-w-2xl bg-white rounded-3xl p-6 md:p-8 shadow-2xl border border-slate-100 flex flex-col max-h-[85vh] text-slate-800 font-sans"
+              >
+                {/* Header */}
+                <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
+                      <Shield size={20} />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-black text-slate-900 leading-tight">{d.gdprModalTitle}</h3>
+                      <span className="text-[10px] text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-widest block w-fit mt-1">Sovereign Compliance</span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowGdprDetailModal(false)}
+                    className="p-1 px-2.5 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600 font-black text-xs cursor-pointer transition-all"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                {/* Content with Scroll */}
+                <div className="flex-1 overflow-y-auto pr-2 mt-4 space-y-6">
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    {d.gdprModalIntro}
+                  </p>
+
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-black text-slate-900 flex items-center gap-2">
+                      <Lock size={12} className="text-emerald-500" />
+                      {appLang === 'FR' ? "Détail de notre utilisation" : "Operational Storage Details"}
+                    </h4>
+
+                    <div className="border border-slate-150 rounded-2xl overflow-hidden text-[11px]">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-slate-50 text-slate-600 font-bold border-b border-slate-150">
+                            <th className="p-3 font-semibold">{d.gdprTableColCookie}</th>
+                            <th className="p-3 font-semibold">{d.gdprTableColType}</th>
+                            <th className="p-3 font-semibold">{d.gdprTableColPurpose}</th>
+                            <th className="p-3 font-semibold">{d.gdprTableColDuration}</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 text-slate-700">
+                          <tr className="hover:bg-slate-50/50">
+                            <td className="p-3 font-mono font-bold text-[#1db954]">{d.gdprRow1Name}</td>
+                            <td className="p-3 font-medium text-slate-500">{d.gdprRow1Type}</td>
+                            <td className="p-3 leading-relaxed text-slate-500">{d.gdprRow1Purpose}</td>
+                            <td className="p-3 font-medium text-slate-500">{d.gdprRow1Duration}</td>
+                          </tr>
+                          <tr className="hover:bg-slate-50/50">
+                            <td className="p-3 font-mono font-bold text-[#1db954]">{d.gdprRow2Name}</td>
+                            <td className="p-3 font-medium text-slate-500">{d.gdprRow2Type}</td>
+                            <td className="p-3 leading-relaxed text-slate-500">{d.gdprRow2Purpose}</td>
+                            <td className="p-3 font-medium text-slate-500">{d.gdprRow2Duration}</td>
+                          </tr>
+                          <tr className="hover:bg-slate-50/50">
+                            <td className="p-3 font-mono font-bold text-[#1db954]">{d.gdprRow3Name}</td>
+                            <td className="p-3 font-medium text-slate-500">{d.gdprRow3Type}</td>
+                            <td className="p-3 leading-relaxed text-slate-500">{d.gdprRow3Purpose}</td>
+                            <td className="p-3 text-slate-500 font-medium">{d.gdprRow3Duration}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl space-y-2">
+                    <h4 className="text-xs font-black text-slate-900 flex items-center gap-1.5">
+                      <Shield size={12} className="text-emerald-500" />
+                      {d.gdprModalSec2Title}
+                    </h4>
+                    <p className="text-[11px] text-slate-500 leading-relaxed text-slate-500">
+                      {d.gdprModalSec2Text}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="pt-4 border-t border-slate-100 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!gdprConsent) {
+                        saveGdprChoice('accepted');
+                      }
+                      setShowGdprDetailModal(false);
+                    }}
+                    className="px-6 py-2.5 bg-slate-950 hover:bg-slate-800 text-white rounded-xl text-xs font-bold shadow-md hover:shadow-slate-300 transition-all cursor-pointer"
+                  >
+                    {d.gdprModalClose}
+                  </button>
+                </div>
               </motion.div>
             </div>
           )}
@@ -3293,6 +3791,173 @@ export default function App() {
             <span className="text-2xl">{notification.icon}</span>
             <span className="text-sm font-bold tracking-tight">{notification.msg}</span>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* GDPR Consent & Privacy */}
+      <AnimatePresence>
+        {!gdprConsent && (
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="fixed bottom-6 left-6 right-6 md:left-auto md:right-6 md:max-w-md bg-slate-900 border border-slate-800 text-white rounded-3xl p-6 shadow-2xl z-[400] flex flex-col space-y-4 font-sans text-left"
+          >
+            <div className="flex justify-between items-start gap-4">
+              <div className="flex items-start gap-3">
+                <div className="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-xl shrink-0">
+                  <Shield size={20} />
+                </div>
+                <h4 className="text-sm font-black tracking-tight self-center">{d.gdprBannerTitle}</h4>
+              </div>
+              <button
+                type="button"
+                onClick={() => saveGdprChoice('only_essential')}
+                className="text-[11px] text-slate-400 hover:text-emerald-400 underline font-semibold cursor-pointer transition-colors whitespace-nowrap shrink-0 bg-transparent border-none mt-1"
+              >
+                {d.gdprBtnRefuse} ✕
+              </button>
+            </div>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              {d.gdprBannerText}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => saveGdprChoice('accepted')}
+                className="flex-1 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black rounded-xl transition-all cursor-pointer text-center"
+              >
+                {d.gdprBtnAccept}
+              </button>
+              <button
+                type="button"
+                onClick={() => saveGdprChoice('only_essential')}
+                className="py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold rounded-xl transition-all cursor-pointer text-center"
+              >
+                {d.gdprBtnEssential}
+              </button>
+            </div>
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={() => setShowGdprDetailModal(true)}
+                className="text-[11px] text-slate-400 hover:text-slate-300 underline font-semibold cursor-pointer transition-colors"
+              >
+                {d.gdprBtnLearnMore} (RGPD / GDPR)
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showGdprDetailModal && (
+          <div className="fixed inset-0 z-[500] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowGdprDetailModal(false)}
+              className="absolute inset-0 bg-slate-950/75 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              className="relative z-10 w-full max-w-2xl bg-white rounded-3xl p-6 md:p-8 shadow-2xl border border-slate-100 flex flex-col max-h-[85vh] text-slate-800 font-sans text-left"
+            >
+              <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
+                    <Shield size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-slate-900 leading-tight">{d.gdprModalTitle}</h3>
+                    <span className="text-[10px] text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-widest block w-fit mt-1">Sovereign Compliance</span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowGdprDetailModal(false)}
+                  className="p-1 px-2.5 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600 font-black text-xs cursor-pointer transition-all"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto pr-2 mt-4 space-y-6">
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  {d.gdprModalIntro}
+                </p>
+
+                <div className="space-y-3">
+                  <h4 className="text-xs font-black text-slate-900 flex items-center gap-2">
+                    <Lock size={12} className="text-emerald-500" />
+                    {appLang === 'FR' ? "Détail de notre utilisation" : "Operational Storage Details"}
+                  </h4>
+
+                  <div className="border border-slate-150 rounded-2xl overflow-hidden text-[11px]">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-slate-50 text-slate-600 font-bold border-b border-slate-150">
+                          <th className="p-3 font-semibold">{d.gdprTableColCookie}</th>
+                          <th className="p-3 font-semibold">{d.gdprTableColType}</th>
+                          <th className="p-3 font-semibold">{d.gdprTableColPurpose}</th>
+                          <th className="p-3 font-semibold">{d.gdprTableColDuration}</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 text-slate-700">
+                        <tr className="hover:bg-slate-50/50">
+                          <td className="p-3 font-mono font-bold text-[#1db954]">{d.gdprRow1Name}</td>
+                          <td className="p-3 font-medium text-slate-500">{d.gdprRow1Type}</td>
+                          <td className="p-3 leading-relaxed text-slate-500 text-left">{d.gdprRow1Purpose}</td>
+                          <td className="p-3 font-medium text-slate-500">{d.gdprRow1Duration}</td>
+                        </tr>
+                        <tr className="hover:bg-slate-50/50">
+                          <td className="p-3 font-mono font-bold text-[#1db954]">{d.gdprRow2Name}</td>
+                          <td className="p-3 font-medium text-slate-500">{d.gdprRow2Type}</td>
+                          <td className="p-3 leading-relaxed text-slate-500 text-left">{d.gdprRow2Purpose}</td>
+                          <td className="p-3 font-medium text-slate-500">{d.gdprRow2Duration}</td>
+                        </tr>
+                        <tr className="hover:bg-slate-50/50">
+                          <td className="p-3 font-mono font-bold text-[#1db954]">{d.gdprRow3Name}</td>
+                          <td className="p-3 font-medium text-slate-500">{d.gdprRow3Type}</td>
+                          <td className="p-3 leading-relaxed text-slate-500 text-left">{d.gdprRow3Purpose}</td>
+                          <td className="p-3 text-slate-500 font-medium">{d.gdprRow3Duration}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl space-y-2">
+                  <h4 className="text-xs font-black text-slate-900 flex items-center gap-1.5">
+                    <Shield size={12} className="text-emerald-500" />
+                    {d.gdprModalSec2Title}
+                  </h4>
+                  <p className="text-[11px] text-slate-500 leading-relaxed text-left">
+                    {d.gdprModalSec2Text}
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-slate-100 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!gdprConsent) {
+                      saveGdprChoice('accepted');
+                    }
+                    setShowGdprDetailModal(false);
+                  }}
+                  className="px-6 py-2.5 bg-slate-950 hover:bg-slate-800 text-white rounded-xl text-xs font-bold shadow-md hover:shadow-slate-300 transition-all cursor-pointer"
+                >
+                  {d.gdprModalClose}
+                </button>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>
