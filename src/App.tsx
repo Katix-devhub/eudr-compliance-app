@@ -61,6 +61,7 @@ import {
 } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from './lib/firebase';
 import { OFFICIAL_HS_CODES, COUNTRY_RISK_BENCHMARK, OFFICIAL_REGISTRIES, SAMPLE_REAL_EXPORTERS, OfficialExporter, COMPLIANCE_METADATA } from './lib/officialData';
+import { EudrDiagnostics } from './components/EudrDiagnostics';
 
 // --- Types ---
 
@@ -148,8 +149,8 @@ const Sidebar = ({
   onLogout: () => void; 
   onOpenBilling: () => void; 
   trialDaysRemaining: number;
-  currentView: 'dashboard' | 'suppliers' | 'declarations' | 'pitch';
-  setCurrentView: (v: 'dashboard' | 'suppliers' | 'declarations' | 'pitch') => void;
+  currentView: 'dashboard' | 'suppliers' | 'declarations' | 'pitch' | 'diagnostics';
+  setCurrentView: (v: 'dashboard' | 'suppliers' | 'declarations' | 'pitch' | 'diagnostics') => void;
   appLang: 'FR' | 'EN';
   onChangeAppLang: (lang: 'FR' | 'EN') => void;
 }) => (
@@ -181,6 +182,12 @@ const Sidebar = ({
         label={appLang === 'FR' ? "Déclarations EUDR" : "EUDR Statements"} 
         active={currentView === 'declarations'}
         onClick={() => setCurrentView('declarations')}
+      />
+      <NavItem 
+        icon={<Sparkles size={18} className="text-[#1db954]" />} 
+        label={appLang === 'FR' ? "Assistant Diag RDUE" : "RDUE Assistant Diag"} 
+        active={currentView === 'diagnostics'} 
+        onClick={() => setCurrentView('diagnostics')}
       />
       <NavItem 
         icon={<Coins size={18} />} 
@@ -1377,7 +1384,7 @@ export default function App() {
 
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [activeFilter, setActiveFilter] = useState<Status | 'all'>('all');
-  const [currentView, setCurrentView] = useState<'dashboard' | 'suppliers' | 'declarations' | 'pitch'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'suppliers' | 'declarations' | 'pitch' | 'diagnostics'>('dashboard');
   const [selectedSupplierId, setSelectedSupplierId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalTab, setModalTab] = useState<'manual' | 'registry'>('manual');
@@ -2609,7 +2616,8 @@ export default function App() {
         <header className="sticky top-0 bg-white/80 backdrop-blur-md border-b border-slate-200 px-8 py-4 flex items-center justify-between z-40">
           <div className="flex items-center gap-4">
             <h1 className="text-lg font-bold tracking-tight">
-              {currentView === 'pitch' ? 'Simulateur d\'Impact & Calculateur de ROI' :
+              {currentView === 'diagnostics' ? 'Diagnostic & Détective RDUE (EUDR)' :
+               currentView === 'pitch' ? 'Simulateur d\'Impact & Calculateur de ROI' :
                currentView === 'dashboard' ? 'Vue d\'ensemble' : 
                currentView === 'suppliers' ? 'Gestion des Fournisseurs' : 'Gestion des Déclarations'}
             </h1>
@@ -2636,7 +2644,12 @@ export default function App() {
         </header>
 
         <div className="p-8 max-w-6xl mx-auto space-y-8">
-          {currentView === 'pitch' ? (
+          {currentView === 'diagnostics' ? (
+            <EudrDiagnostics 
+              suppliers={suppliers} 
+              onNotif={(msg) => showNotif('✨', msg)} 
+            />
+          ) : currentView === 'pitch' ? (
             <RiskRoiCalculator 
               suppliers={suppliers} 
               setSuppliers={setSuppliers} 
@@ -3975,7 +3988,7 @@ const RiskRoiCalculator = ({
 }: {
   suppliers: Supplier[];
   setSuppliers: React.Dispatch<React.SetStateAction<Supplier[]>>;
-  setCurrentView: (v: 'dashboard' | 'suppliers' | 'declarations' | 'pitch') => void;
+  setCurrentView: (v: 'dashboard' | 'suppliers' | 'declarations' | 'pitch' | 'diagnostics') => void;
   setActivePortalRef: (ref: string | null) => void;
   showNotif: (icon: string, msg: string) => void;
 }) => {
