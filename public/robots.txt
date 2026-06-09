@@ -1,2 +1,4 @@
 User-agent: *
 Allow: /
+
+Sitemap: https://eudr-compliance-app.onrender.com/sitemap.xml
